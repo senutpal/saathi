@@ -1,13 +1,10 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>403 — Saathi</title>
-</head>
-<body>
-  <h1>403 — Access denied.</h1>
-  <p>You do not have permission to view this page.</p>
-  <p><a href="/">Back to Saathi</a></p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}403 — Saathi{% endblock %}
+{% block header %}Forbidden{% endblock %}
+{% block content %}
+<div class="rounded-lg border border-border bg-card p-6">
+  <p class="text-2xl font-semibold tracking-tight tabular-nums">403</p>
+  <p class="mt-2 text-sm text-muted-foreground">Access denied.</p>
+  <a href="/" class="mt-4 inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Back to Saathi</a>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Style — Saathi{% endblock %}
+{% block header %}UI components{% endblock %}
+{% block content %}
+<div class="space-y-6">
+  <section>
+    <h2 class="mb-3 text-sm font-semibold tracking-tight">Buttons</h2>
+    <div class="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-6">
+      <button type="button" class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Primary</button>
+      <button type="button" class="inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-border bg-card text-foreground hover:bg-accent hover:text-foreground">Secondary</button>
+      <button type="button" class="inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 text-muted-foreground hover:bg-accent hover:text-foreground">Ghost</button>
+      <button type="button" class="inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-destructive text-white hover:bg-destructive/90">Destructive</button>
+      <button type="button" disabled class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Disabled</button>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="mb-3 text-sm font-semibold tracking-tight">Cards &amp; stats</h2>
+    <div class="grid gap-6 md:grid-cols-3">
+      <div class="rounded-lg border border-border bg-card p-6">
+        <h3 class="text-sm font-medium">Card title</h3>
+        <p class="mt-1 text-xs text-muted-foreground">Flat bordered surface, no shadow.</p>
+        <div class="mt-6 flex gap-2 border-t border-border pt-4">
+          <button type="button" class="inline-flex h-8 items-center justify-center rounded-md border border-border bg-card px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-accent hover:text-foreground">Action</button>
+        </div>
+      </div>
+      <div class="rounded-lg border border-border bg-card p-4">
+        <p class="text-xs text-muted-foreground">Reminders</p>
+        <p class="mt-1 text-2xl font-semibold tracking-tight tabular-nums">12</p>
+      </div>
+      <div class="rounded-lg border border-border bg-card p-4">
+        <p class="text-xs text-muted-foreground">Notes</p>
+        <p class="mt-1 text-2xl font-semibold tracking-tight tabular-nums">48</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="mb-3 text-sm font-semibold tracking-tight">Form</h2>
+    <div class="rounded-lg border border-border bg-card p-6">
+      <label for="demo-title" class="text-sm font-medium">Title</label>
+      <input id="demo-title" name="title" type="text" placeholder="Something to remember"
+             class="mt-2 flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <p class="mt-2 text-xs text-muted-foreground">Shown in lists and search results.</p>
+      <input id="demo-broken" type="text" aria-invalid="true"
+             class="mt-4 flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <p class="mt-2 text-xs text-destructive">This field is required.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="mb-3 text-sm font-semibold tracking-tight">Badges &amp; table</h2>
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">Default</span>
+      <span class="inline-flex items-center rounded-md border border-border bg-card px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">Success</span>
+      <span class="inline-flex items-center rounded-md border border-border bg-card px-2 py-0.5 text-xs font-medium text-destructive">Danger</span>
+    </div>
+    <table class="mt-4 w-full text-sm">
+      <thead>
+        <tr class="border-b border-border text-left text-xs text-muted-foreground">
+          <th class="py-2 pr-4 font-normal">Event</th><th class="py-2 pr-4 font-normal">When</th><th class="py-2 pr-4 font-normal">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        <tr class="transition-colors hover:bg-accent/50"><td class="py-2.5 pr-4">Team sync</td><td class="py-2.5 pr-4 tabular-nums">Mon 10:00</td><td class="py-2.5 pr-4"><span class="inline-flex items-center rounded-md border border-border bg-card px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">Upcoming</span></td></tr>
+        <tr class="transition-colors hover:bg-accent/50"><td class="py-2.5 pr-4">Rent due</td><td class="py-2.5 pr-4 tabular-nums">Tue 09:00</td><td class="py-2.5 pr-4"><span class="inline-flex items-center rounded-md border border-border bg-card px-2 py-0.5 text-xs font-medium text-destructive">Overdue</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2 class="mb-3 text-sm font-semibold tracking-tight">Empty state, pagination, confirm &amp; toast</h2>
+    <div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+      <div class="mb-3 flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+      </div>
+      <p class="text-sm font-medium">No reminders yet</p>
+      <p class="mt-1 text-xs text-muted-foreground">Add one and it will show up here.</p>
+      <button type="button" class="mt-4 inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">New reminder</button>
+    </div>
+    <nav aria-label="Pagination" class="mt-6 flex items-center justify-between border-t border-border pt-4 text-sm">
+      <a href="#" class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Previous</a>
+      <span class="text-xs tabular-nums text-muted-foreground">Page 2 of 7</span>
+      <a href="#" class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Next</a>
+    </nav>
+    <div class="mt-6 flex flex-wrap items-center gap-2">
+      <form action="#" method="post" class="inline" onsubmit="return confirm('Delete this note? This cannot be undone.');">
+        <button type="submit" class="inline-flex h-8 items-center justify-center rounded-md bg-destructive px-3 text-sm font-medium text-white transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Delete (confirm demo)</button>
+      </form>
+      <button type="button" onclick="saathiToast('Saved successfully')" class="inline-flex h-8 items-center justify-center rounded-md border border-border bg-card px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Toast success</button>
+      <button type="button" onclick="saathiToast('Something failed', 'error')" class="inline-flex h-8 items-center justify-center rounded-md border border-border bg-card px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Toast error</button>
+    </div>
+  </section>
+</div>
+{% endblock %}

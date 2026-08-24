@@ -1,0 +1,139 @@
+{%- set theme = request.cookies.get('theme', 'light') -%}
+<!doctype html>
+<html lang="en" class="{{ 'dark' if theme == 'dark' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Saathi{% endblock %}</title>
+  <script>
+    (function(){var t=null;try{t=localStorage.getItem("theme")}catch(e){}
+    if(!t){var m=document.cookie.match(/(?:^|;\s*)theme=(dark|light)/);if(m)t=m[1]}
+    if(t==="dark")document.documentElement.classList.add("dark")})();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @custom-variant dark (&:where(.dark, .dark *));
+    @theme inline {
+      --color-background: var(--background);
+      --color-foreground: var(--foreground);
+      --color-card: var(--card);        --color-card-foreground: var(--foreground);
+      --color-primary: var(--primary);  --color-primary-foreground: var(--primary-foreground);
+      --color-muted: var(--muted);      --color-muted-foreground: var(--muted-foreground);
+      --color-accent: var(--accent);    --color-accent-foreground: var(--foreground);
+      --color-destructive: var(--destructive);
+      --color-border: var(--border);    --color-input: var(--input);  --color-ring: var(--ring);
+      --radius-sm: calc(var(--radius) * .6); --radius-md: calc(var(--radius) * .8);
+      --radius-lg: var(--radius);            --radius-xl: calc(var(--radius) * 1.4);
+      --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-background font-sans text-foreground antialiased">
+<a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4
+   focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2
+   focus:text-sm focus:text-primary-foreground">Skip to content</a>
+
+<div class="flex min-h-screen">
+  {% set nav = [
+    ('/', 'Dashboard'),
+    ('/profile', 'Profile'),
+    ('/profile/cv', 'CV'),
+    ('/events', 'Events'),
+    ('/calendar', 'Calendar'),
+    ('/notes', 'Notes'),
+    ('/files', 'Files'),
+    ('/search', 'Search'),
+    ('/history', 'History')
+  ] %}
+  <aside class="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border bg-sidebar md:flex">
+    <div class="flex h-14 items-center px-4 text-sm font-semibold tracking-tight">Saathi</div>
+    <nav class="flex-1 space-y-1 px-3 py-2" aria-label="Main">
+      {% for href, label in nav %}
+      {% set is_active = (href == '/' and request.endpoint == 'main.index') or request.path == href %}
+      <a href="{{ href }}" {% if is_active %}aria-current="page"{% endif %}
+         class="flex items-center rounded-md px-3 py-2 text-sm {{ 'bg-accent font-medium' if is_active else 'text-muted-foreground transition-colors hover:bg-accent hover:text-foreground' }}">
+        {{ label }}</a>
+      {% endfor %}
+    </nav>
+    <div class="border-t border-border p-3"><span class="px-3 text-xs text-muted-foreground">v{{ config.get('VERSION', '0.1.0') }}</span></div>
+  </aside>
+
+  <div class="flex min-w-0 flex-1 flex-col md:pl-60">
+    <header class="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-border bg-background/95 px-6 backdrop-blur no-print">
+      <h1 class="text-sm font-semibold tracking-tight">{% block header %}{% endblock %}</h1>
+      <div class="ml-auto flex items-center gap-2">
+        <button type="button" aria-label="Notifications"
+                class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+          </svg>
+        </button>
+        <button type="button" onclick="toggleTheme()" aria-label="Toggle dark mode"
+                class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+          <svg class="size-4 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+          </svg>
+          <svg class="hidden size-4 dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+          </svg>
+        </button>
+        {% if current_user.is_authenticated %}
+        <form action="/auth/logout" method="post" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit"
+                  class="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">Log out</button>
+        </form>
+        {% endif %}
+      </div>
+    </header>
+
+    <main id="main" class="mx-auto w-full max-w-6xl flex-1 p-6 lg:p-8">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="border-t border-border px-6 py-3 text-xs text-muted-foreground no-print">
+      Saathi — personal assistant dashboard · {{ config.get('SAATHI_ENV', 'development') }}
+    </footer>
+  </div>
+</div>
+
+<div id="toasts" aria-live="polite" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+<script>
+function saathiToast(message, level = "success") {
+  const t = document.createElement("div");
+  t.className = "rounded-lg border border-border bg-card p-3 text-sm shadow-lg";
+  if (level === "error") { t.classList.add("border-destructive", "text-destructive"); }
+  t.setAttribute("role", "status");
+  t.textContent = message;
+  const region = document.getElementById("toasts");
+  region.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+(function () {
+  const root = document.documentElement;
+  function persist(dark) {
+    try { localStorage.setItem("theme", dark ? "dark" : "light"); } catch (e) {}
+    document.cookie = "theme=" + (dark ? "dark" : "light") +
+                      ";path=/;max-age=31536000;samesite=lax";
+  }
+  window.toggleTheme = function () {
+    persist(root.classList.toggle("dark"));
+  };
+})();
+</script>
+{% for category, message in get_flashed_messages(with_categories=true) %}
+<script>saathiToast({{ message|tojson }}, {{ 'error' if category == 'error' else 'success'|tojson }})</script>
+{% endfor %}
+<style media="print">
+  header, footer, aside, #toasts, .no-print { display: none !important; }
+  main { max-width: none !important; padding: 0 !important; }
+</style>
+</body>
+</html>

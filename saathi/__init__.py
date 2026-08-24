@@ -29,6 +29,12 @@ def _configure_storage(app: Flask) -> None:
     app.config["UPLOAD_FOLDER"] = str(upload_dir)
 
 
+def register_blueprints(app: Flask) -> None:
+    from .blueprints import main
+
+    app.register_blueprint(main.bp)
+
+
 def register_error_handlers(app: Flask) -> None:
     def render(code: int):
         return render_template(f"errors/{code}.html"), code
@@ -65,6 +71,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     _configure_storage(app)
     init_extensions(app)
+    register_blueprints(app)
     register_error_handlers(app)
     register_template_helpers(app)
 
