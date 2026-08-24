@@ -1,13 +1,12 @@
-from flask import Blueprint, abort, current_app, redirect, render_template
-from flask_login import current_user
+from flask import Blueprint, abort, current_app, render_template
+from flask_login import login_required
 
 bp = Blueprint("main", __name__)
 
 
 @bp.get("/")
+@login_required
 def index() -> str:
-    if not current_user.is_authenticated:
-        return redirect("/auth/login")
     return render_template("main/home.html")
 
 

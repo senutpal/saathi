@@ -15,7 +15,8 @@ def test_home_redirects_anonymous_visitor_to_login(client) -> None:
     response = client.get("/")
 
     assert response.status_code == 302
-    assert response.headers["Location"] == "/auth/login"
+    assert response.headers["Location"].startswith("/auth/login")
+    assert "next=" in response.headers["Location"]
 
 
 def test_style_gallery_hidden_outside_development(client) -> None:
