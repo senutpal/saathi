@@ -2,6 +2,7 @@ import pytest
 
 from saathi import create_app
 from saathi.extensions import db
+from saathi.models import User
 
 
 @pytest.fixture()
@@ -38,5 +39,29 @@ def session(app):
 
 
 @pytest.fixture()
-def logged_in_client(app):
-    raise NotImplementedError("real auth helper lands with P03")
+def make_user(session):
+    def _make_user(
+        email: str = "a@example.com", password: str = "correct horse", username: str = "a"
+    ) -> User:
+        user = User(username=username, email=email)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        return user
+
+    return _make_user
+
+
+@pytest.fixture()
+def login(client):
+    def _login(email: str, password: str):
+        return client.post("/auth/login", data={"email": email, "password": password})
+
+    return _login
+
+
+@pytest.fixture()
+def logged_in_client(client, make_user, login):
+    make_user()
+    login("a@example.com", "correct horse")
+    return client

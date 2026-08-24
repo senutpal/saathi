@@ -60,6 +60,10 @@ def login() -> str | Response:
             flash(f"Welcome back, {user.username}.")
             return redirect(safe_next(next_target) or url_for("main.index"))
         flash(LOGIN_FAILED_MESSAGE, "error")
+        # Re-render clean: keeps wrong-password and unknown-email responses
+        # byte-identical (no echoed email — flash carries the failure).
+        # formdata={} defeats FlaskForm's auto-bind of request.form.
+        form = LoginForm(formdata={})
     return render_template("auth/login.html", form=form, next_target=next_target)
 
 
