@@ -30,9 +30,10 @@ def _configure_storage(app: Flask) -> None:
 
 
 def register_blueprints(app: Flask) -> None:
-    from .blueprints import main
+    from .blueprints import auth, main
 
     app.register_blueprint(main.bp)
+    app.register_blueprint(auth.bp)
 
 
 def register_error_handlers(app: Flask) -> None:
