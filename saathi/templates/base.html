@@ -84,11 +84,19 @@
           </svg>
         </button>
         {% if current_user.is_authenticated %}
-        <form action="/auth/logout" method="post" class="inline">
+        <span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+          {{ current_user.username }}
+        </span>
+        <form action="{{ url_for('auth.logout') }}" method="post" class="inline">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit"
                   class="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">Log out</button>
         </form>
+        {% else %}
+        <a href="{{ url_for('auth.login') }}"
+           class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Log in</a>
+        <a href="{{ url_for('auth.register') }}"
+           class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Register</a>
         {% endif %}
       </div>
     </header>

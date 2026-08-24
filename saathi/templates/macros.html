@@ -1,0 +1,7 @@
+{% macro field(f, placeholder="") -%}
+<div>
+  {{ f.label(class="mb-1.5 block text-sm font-medium") }}
+  {{ f(class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", placeholder=placeholder) }}
+  {% for error in f.errors %}<p class="mt-1 text-xs text-destructive">{{ error }}</p>{% endfor %}
+</div>
+{%- endmacro %}
