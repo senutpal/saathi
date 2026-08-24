@@ -6,7 +6,7 @@ from pathlib import Path
 from flask import Flask, render_template
 
 from .config import BASE_DIR, MAP
-from .extensions import init_extensions
+from .extensions import init_db, init_extensions
 
 
 def _resolve_relative(path: str) -> Path:
@@ -71,6 +71,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     _configure_storage(app)
     init_extensions(app)
+    init_db(app)
     register_blueprints(app)
     register_error_handlers(app)
     register_template_helpers(app)
