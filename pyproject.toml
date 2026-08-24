@@ -1,0 +1,37 @@
+[project]
+name = "saathi"
+version = "0.1.0"
+description = "Saathi - personal assistant web app (Flask, server-rendered)"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "flask~=3.1",
+    "flask-sqlalchemy~=3.1",
+    "flask-login==0.6.3",
+    "flask-wtf~=1.2",
+    "requests",
+    "markdown-it-py",
+    "nh3",
+    "pillow>=12.3,<13",
+    "filetype",
+    "python-dotenv",
+    "waitress",
+    "ddgs>=9.15,<10",
+    "icalendar>=7.3,<8",
+    "pyotp",
+    "segno",
+    "dateparser",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
