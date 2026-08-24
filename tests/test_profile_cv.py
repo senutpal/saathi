@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
+from pathlib import Path
 
+import pytest
 from sqlalchemy.orm import Session
 
+from saathi.blueprints.profile import routes as profile_routes
 from saathi.extensions import db
-from saathi.models import EducationEntry, Profile, WorkEntry
+from saathi.models import ActivityLog, EducationEntry, Profile, Upload, WorkEntry
 from saathi.services.cv import build_cv_context, fmt_span, slugify
+
+HAS_PDF = profile_routes.HAS_WEASYPRINT
 
 EDU_DATA = {
     "institution": "NIT",
@@ -320,3 +325,51 @@ def test_fmt_span_and_slugify() -> None:
     assert fmt_span(None, None) == f"{chr(0x2014)} {dash} Present"
     assert slugify("Ada Lovelace") == "ada-lovelace"
     assert slugify("  ") == "cv"
+
+
+@pytest.mark.skipif(not HAS_PDF, reason="WeasyPrint runtime not available")
+def test_pdf_export_happy_path(logged_in_client) -> None:
+    _seed_full_profile(logged_in_client)
+
+    response = logged_in_client.get("/profile/cv/export.pdf")
+
+    assert response.status_code == 200
+    assert response.data[:4] == b"%PDF"
+    assert len(response.data) > 1000
+    assert response.mimetype == "application/pdf"
+    disposition = response.headers["Content-Disposition"]
+    assert "attachment" in disposition and "filename" in disposition
+
+
+def test_pdf_export_409_when_nothing_saved(logged_in_client) -> None:
+    if HAS_PDF:
+        response = logged_in_client.get("/profile/cv/export.pdf")
+
+        assert response.status_code == 409
+        assert b"CV is empty" in response.data
+
+
+@pytest.mark.skipif(not HAS_PDF, reason="WeasyPrint runtime not available")
+def test_pdf_export_records_upload_row_and_audit_log(logged_in_client, session, app) -> None:
+    _seed_full_profile(logged_in_client)
+    user_id = db.session.query(Profile).one().user_id
+
+    response = logged_in_client.get("/profile/cv/export.pdf")
+
+    assert response.status_code == 200
+    upload = db.session.query(Upload).one()
+    assert upload.user_id == user_id
+    assert upload.original_filename == "ada-lovelace-cv.pdf"
+    assert upload.stored_filename.endswith(".pdf")
+    stored_path = Path(app.config["UPLOAD_FOLDER"]) / "cv" / str(user_id) / upload.stored_filename
+    assert stored_path.is_file()
+    assert db.session.query(ActivityLog).filter_by(activity_type="cv_export").count() == 1
+
+
+def test_pdf_export_degrades_gracefully_without_weasyprint(logged_in_client, monkeypatch) -> None:
+    monkeypatch.setattr(profile_routes, "HAS_WEASYPRINT", False)
+
+    response = logged_in_client.get("/profile/cv/export.pdf")
+
+    assert response.status_code == 302
+    assert "/profile/cv" in response.headers["Location"]

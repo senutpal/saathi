@@ -23,6 +23,7 @@ dependencies = [
     "dateparser",
     "email-validator>=2.3.0",
     "flask-limiter>=4.1.1",
+    "weasyprint==69.0",
 ]
 
 [build-system]
