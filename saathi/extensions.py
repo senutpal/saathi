@@ -37,10 +37,15 @@ def init_extensions(app: Flask) -> None:
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
     login_manager.login_message_category = "error"
+    # "strong" drops the session when the client fingerprint changes mid-session.
+    login_manager.session_protection = "strong"
 
     @login_manager.user_loader
-    def _placeholder_loader(user_id: str):
-        return None  # real lookup lands in P03
+    def _load_user(user_id: str):
+        # deferred: models import db from this module (circular-import wall)
+        from .models import User
+
+        return db.session.get(User, int(user_id))
 
     csrf.init_app(app)
     limiter.init_app(app)

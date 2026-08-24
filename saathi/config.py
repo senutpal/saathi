@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -10,6 +11,7 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-not-for-prod")
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=8)
     DATABASE_PATH = os.environ.get("DATABASE_PATH", str(BASE_DIR / "instance" / "saathi.db"))
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", str(BASE_DIR / "uploads"))
     MAX_CONTENT_LENGTH = int(os.environ.get("MAX_CONTENT_LENGTH", 5 * 1024 * 1024))
