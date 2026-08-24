@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Profile — Saathi{% endblock %}
+{% block header %}Profile{% endblock %}
+{% block content %}
+<div class="space-y-6">
+  <section>
+    <div class="mb-4 flex items-center justify-between">
+      <h2 class="text-sm font-medium">Personal</h2>
+      <a href="{{ url_for('profile.edit') }}"
+         class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Edit profile</a>
+    </div>
+    {% if profile %}
+    <div class="rounded-lg border border-border bg-card p-6">
+      <dl class="divide-y divide-border text-sm">
+        <div class="flex justify-between gap-4 py-2">
+          <dt class="shrink-0 text-muted-foreground">Full name</dt>
+          <dd class="text-right">{{ profile.full_name }}</dd>
+        </div>
+        <div class="flex justify-between gap-4 py-2">
+          <dt class="shrink-0 text-muted-foreground">Headline</dt>
+          <dd class="text-right">{{ profile.headline or "—" }}</dd>
+        </div>
+        <div class="flex justify-between gap-4 py-2">
+          <dt class="shrink-0 text-muted-foreground">Sex</dt>
+          <dd class="text-right">{{ {"female": "Female", "male": "Male", "other": "Other", "prefer_not_to_say": "Prefer not to say"}.get(profile.sex, "—") }}</dd>
+        </div>
+        <div class="flex justify-between gap-4 py-2">
+          <dt class="shrink-0 text-muted-foreground">Date of birth</dt>
+          <dd class="text-right tabular-nums">{{ profile.date_of_birth.strftime("%d %b %Y") if profile.date_of_birth else "—" }}</dd>
+        </div>
+        <div class="flex justify-between gap-4 py-2">
+          <dt class="shrink-0 text-muted-foreground">Phone</dt>
+          <dd class="text-right tabular-nums">{{ profile.phone or "—" }}</dd>
+        </div>
+        <div class="flex justify-between gap-4 py-2">
+          <dt class="shrink-0 text-muted-foreground">Address</dt>
+          <dd class="whitespace-pre-line text-right">{{ profile.address or "—" }}</dd>
+        </div>
+        <div class="flex justify-between gap-4 py-2">
+          <dt class="shrink-0 text-muted-foreground">Skills</dt>
+          <dd class="text-right">{{ profile.skills_csv or "—" }}</dd>
+        </div>
+        <div class="flex justify-between gap-4 py-2">
+          <dt class="shrink-0 text-muted-foreground">Summary</dt>
+          <dd class="whitespace-pre-line text-right">{{ profile.summary or "—" }}</dd>
+        </div>
+        <div class="flex justify-between gap-4 py-2">
+          <dt class="shrink-0 text-muted-foreground">Likes</dt>
+          <dd class="whitespace-pre-line text-right">{{ profile.likes or "—" }}</dd>
+        </div>
+        <div class="flex justify-between gap-4 py-2">
+          <dt class="shrink-0 text-muted-foreground">Dislikes</dt>
+          <dd class="whitespace-pre-line text-right">{{ profile.dislikes or "—" }}</dd>
+        </div>
+      </dl>
+    </div>
+    {% else %}
+    <div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+      <p class="text-sm font-medium">No profile yet</p>
+      <p class="mt-1 text-xs text-muted-foreground">Add your personal details to power the CV generator.</p>
+      <a href="{{ url_for('profile.edit') }}"
+         class="mt-4 inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Edit profile</a>
+    </div>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2 class="mb-4 text-sm font-medium">Education</h2>
+    {% if current_user.education_entries %}
+    <ul class="divide-y divide-border rounded-lg border border-border bg-card px-6">
+      {% for e in current_user.education_entries|sort(attribute="start_date", reverse=true) %}
+      <li class="py-3">
+        <p class="text-sm font-medium">{{ e.qualification }}{% if e.field_of_study %}, {{ e.field_of_study }}{% endif %}</p>
+        <p class="mt-0.5 text-xs text-muted-foreground tabular-nums">
+          {{ e.institution }} · {{ e.start_date.strftime("%b %Y") if e.start_date }} – {{ e.end_date.strftime("%b %Y") if e.end_date else "Present" }}
+        </p>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+      <p class="text-sm font-medium">No education entries yet</p>
+      <p class="mt-1 text-xs text-muted-foreground">Add one and it will appear on your CV.</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2 class="mb-4 text-sm font-medium">Work</h2>
+    {% if current_user.work_entries %}
+    <ul class="divide-y divide-border rounded-lg border border-border bg-card px-6">
+      {% for w in current_user.work_entries|sort(attribute="start_date", reverse=true) %}
+      <li class="py-3">
+        <p class="text-sm font-medium">{{ w.role }}{% if w.location %}, {{ w.location }}{% endif %}</p>
+        <p class="mt-0.5 text-xs text-muted-foreground tabular-nums">
+          {{ w.organization }} · {{ w.start_date.strftime("%b %Y") if w.start_date }} – {{ w.end_date.strftime("%b %Y") if w.end_date else "Present" }}
+        </p>
+        {% if w.description %}<p class="mt-1 whitespace-pre-line text-xs text-muted-foreground">{{ w.description }}</p>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+      <p class="text-sm font-medium">No work entries yet</p>
+      <p class="mt-1 text-xs text-muted-foreground">Add one and it will appear on your CV.</p>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

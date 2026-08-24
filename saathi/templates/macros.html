@@ -5,3 +5,11 @@
   {% for error in f.errors %}<p class="mt-1 text-xs text-destructive">{{ error }}</p>{% endfor %}
 </div>
 {%- endmacro %}
+
+{% macro textarea(f, rows=4, placeholder="") -%}
+<div>
+  {{ f.label(class="mb-1.5 block text-sm font-medium") }}
+  {{ f(rows=rows, class="w-full rounded-md border border-input bg-card px-3 py-2 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", placeholder=placeholder) }}
+  {% for error in f.errors %}<p class="mt-1 text-xs text-destructive">{{ error }}</p>{% endfor %}
+</div>
+{%- endmacro %}

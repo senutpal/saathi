@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "macros.html" import field, textarea %}
+{% block title %}Edit profile — Saathi{% endblock %}
+{% block header %}Edit profile{% endblock %}
+{% block content %}
+<form method="post" class="mx-auto mt-2 w-full max-w-2xl space-y-4 rounded-lg border border-border bg-card p-6">
+  {{ form.hidden_tag() }}
+  {{ field(form.full_name) }}
+  {{ field(form.headline, placeholder="one line about you") }}
+  {{ field(form.sex) }}
+  {{ field(form.date_of_birth) }}
+  {{ field(form.phone, placeholder="+91 98765 43210") }}
+  {{ textarea(form.address, rows=2, placeholder="street, city, state") }}
+  {{ textarea(form.skills_csv, rows=2, placeholder="Python, SQL, Tailwind") }}
+  {{ textarea(form.summary, rows=4, placeholder="a short professional summary (max 2000 chars)") }}
+  {{ textarea(form.likes, rows=3, placeholder="one per line") }}
+  {{ textarea(form.dislikes, rows=3, placeholder="one per line") }}
+  <div class="flex gap-2 border-t border-border pt-4">
+    <button type="submit"
+            class="inline-flex h-9 flex-1 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Save profile</button>
+    <a href="{{ url_for('profile.view') }}"
+       class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Cancel</a>
+  </div>
+</form>
+{% endblock %}
