@@ -2,10 +2,37 @@
 {% block title %}Dashboard — Saathi{% endblock %}
 {% block header %}Dashboard{% endblock %}
 {% block content %}
-<div class="card rounded-lg border border-border bg-card p-6">
-  <h2 class="text-sm font-medium">Welcome to Saathi</h2>
-  <p class="mt-1 text-xs text-muted-foreground">
-    The skeleton is alive. Profile, events, notes and the rest arrive as their phases land.
-  </p>
+<div class="space-y-6">
+  <div class="rounded-lg border border-border bg-card p-6">
+    <h2 class="text-sm font-medium">Welcome back, {{ current_user.username }}</h2>
+    <p class="mt-1 text-xs text-muted-foreground">
+      Your daily briefing lands here in a later phase — meanwhile, jump into any module.
+    </p>
+  </div>
+
+  <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    {% set modules = [
+      ('Profile', 'Personal data, education and work history.', '/profile', true),
+      ('CV', 'Themed résumé preview with PDF and DOCX export.', '/profile/cv', true),
+      ('Events', 'Reminders with repeat rules.', '/events', false),
+      ('Calendar', 'Month view of everything scheduled.', '/calendar', false),
+      ('Notes', 'Markdown notes with tags.', '/notes', false),
+      ('Files', 'Your private gallery.', '/files', false),
+      ('Search', 'Keyless web search.', '/search', false),
+      ('History', 'Everything Saathi did for you.', '/history', false)
+    ] %}
+    {% for title, description, href, live in modules %}
+    <a href="{{ href if live else '#'}}"
+       class="{{ 'rounded-lg border border-border bg-card p-4 transition-colors hover:bg-accent/50' if live else 'rounded-lg border border-dashed border-border bg-card p-4' }} block">
+      <div class="flex items-center justify-between">
+        <p class="text-sm font-medium">{{ title }}</p>
+        {% if not live %}
+        <span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">soon</span>
+        {% endif %}
+      </div>
+      <p class="mt-1 text-xs text-muted-foreground">{{ description }}</p>
+    </a>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}
