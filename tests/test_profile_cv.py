@@ -7,7 +7,19 @@ from datetime import date, timedelta
 from sqlalchemy.orm import Session
 
 from saathi.extensions import db
-from saathi.models import Profile
+from saathi.models import EducationEntry, Profile, WorkEntry
+
+EDU_DATA = {
+    "institution": "NIT",
+    "qualification": "B.Tech CSE",
+    "start_date": "2023-08-01",
+}
+
+WORK_DATA = {
+    "organization": "Acme Labs",
+    "role": "Intern",
+    "start_date": "2025-06-01",
+}
 
 
 def _profile_count(session: Session) -> int:
@@ -120,3 +132,88 @@ def test_valid_phone_with_punctuation_accepted(logged_in_client, session) -> Non
     )
 
     assert response.status_code == 302
+
+
+def test_education_add_roundtrip(logged_in_client, session) -> None:
+    response = logged_in_client.post("/profile/education/new", data=EDU_DATA)
+
+    assert response.status_code == 302
+    entry = db.session.query(EducationEntry).one()
+    assert entry.institution == "NIT"
+    assert entry.start_date == date(2023, 8, 1)
+    assert entry.end_date is None
+
+
+def test_work_add_roundtrip(logged_in_client, session) -> None:
+    response = logged_in_client.post("/profile/work/new", data=WORK_DATA)
+
+    assert response.status_code == 302
+    entry = db.session.query(WorkEntry).one()
+    assert entry.organization == "Acme Labs"
+    assert entry.role == "Intern"
+
+
+def test_education_end_before_start_rejected(logged_in_client, session) -> None:
+    response = logged_in_client.post(
+        "/profile/education/new",
+        data={**EDU_DATA, "end_date": "2023-07-31"},
+    )
+
+    assert response.status_code == 302
+    assert db.session.query(EducationEntry).count() == 0
+
+
+def test_work_end_before_start_rejected(logged_in_client, session) -> None:
+    response = logged_in_client.post(
+        "/profile/work/new",
+        data={**WORK_DATA, "end_date": "2025-05-31"},
+    )
+
+    assert response.status_code == 302
+    assert db.session.query(WorkEntry).count() == 0
+
+
+def test_education_delete_removes_own_row(logged_in_client, session) -> None:
+    logged_in_client.post("/profile/education/new", data=EDU_DATA)
+    eid = db.session.query(EducationEntry).one().id
+
+    response = logged_in_client.post(f"/profile/education/{eid}/delete")
+
+    assert response.status_code == 302
+    assert db.session.query(EducationEntry).count() == 0
+
+
+def test_foreign_education_delete_returns_404_and_survives(
+    logged_in_client, client, make_user, login, session
+) -> None:
+    logged_in_client.post("/profile/education/new", data=EDU_DATA)
+    foreign_id = db.session.query(EducationEntry).one().id
+    client.post("/auth/logout")
+    make_user(email="b@example.com", username="b")
+    login("b@example.com", "correct horse")
+
+    response = client.post(f"/profile/education/{foreign_id}/delete")
+
+    assert response.status_code == 404
+    assert db.session.query(EducationEntry).count() == 1
+
+
+def test_foreign_work_delete_returns_404_and_survives(
+    logged_in_client, client, make_user, login, session
+) -> None:
+    logged_in_client.post("/profile/work/new", data=WORK_DATA)
+    foreign_id = db.session.query(WorkEntry).one().id
+    client.post("/auth/logout")
+    make_user(email="b@example.com", username="b")
+    login("b@example.com", "correct horse")
+
+    response = client.post(f"/profile/work/{foreign_id}/delete")
+
+    assert response.status_code == 404
+    assert db.session.query(WorkEntry).count() == 1
+
+
+def test_missing_entry_delete_returns_404(logged_in_client) -> None:
+    response = logged_in_client.post("/profile/education/9999/delete")
+
+    assert response.status_code == 404

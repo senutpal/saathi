@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros.html" import field, textarea %}
 {% block title %}Profile — Saathi{% endblock %}
 {% block header %}Profile{% endblock %}
 {% block content %}
@@ -66,45 +67,100 @@
 
   <section>
     <h2 class="mb-4 text-sm font-medium">Education</h2>
-    {% if current_user.education_entries %}
-    <ul class="divide-y divide-border rounded-lg border border-border bg-card px-6">
-      {% for e in current_user.education_entries|sort(attribute="start_date", reverse=true) %}
-      <li class="py-3">
-        <p class="text-sm font-medium">{{ e.qualification }}{% if e.field_of_study %}, {{ e.field_of_study }}{% endif %}</p>
-        <p class="mt-0.5 text-xs text-muted-foreground tabular-nums">
-          {{ e.institution }} · {{ e.start_date.strftime("%b %Y") if e.start_date }} – {{ e.end_date.strftime("%b %Y") if e.end_date else "Present" }}
-        </p>
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
-      <p class="text-sm font-medium">No education entries yet</p>
-      <p class="mt-1 text-xs text-muted-foreground">Add one and it will appear on your CV.</p>
+    <div class="space-y-4">
+      {% if current_user.education_entries %}
+      <ul class="divide-y divide-border rounded-lg border border-border bg-card px-6">
+        {% for e in current_user.education_entries|sort(attribute="start_date", reverse=true) %}
+        <li class="flex items-start justify-between gap-4 py-3">
+          <div>
+            <p class="text-sm font-medium">{{ e.qualification }}{% if e.field_of_study %}, {{ e.field_of_study }}{% endif %}</p>
+            <p class="mt-0.5 text-xs text-muted-foreground tabular-nums">
+              {{ e.institution }} · {{ e.start_date.strftime("%b %Y") if e.start_date }} – {{ e.end_date.strftime("%b %Y") if e.end_date else "Present" }}
+            </p>
+            {% if e.description %}<p class="mt-1 whitespace-pre-line text-xs text-muted-foreground">{{ e.description }}</p>{% endif %}
+          </div>
+          <form method="post" action="{{ url_for('profile.education_delete', eid=e.id) }}"
+                onsubmit="return confirm('Delete this entry? This cannot be undone.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit"
+                    class="inline-flex h-8 items-center justify-center rounded-md bg-destructive px-3 text-sm font-medium text-white transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Delete</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+        <p class="text-sm font-medium">No education entries yet</p>
+        <p class="mt-1 text-xs text-muted-foreground">Add one below and it will appear on your CV.</p>
+      </div>
+      {% endif %}
+
+      <details class="rounded-lg border border-border bg-card">
+        <summary class="cursor-pointer select-none px-6 py-3 text-sm font-medium">Add education</summary>
+        <form method="post" action="{{ url_for('profile.education_new') }}" class="space-y-3 border-t border-border p-6">
+          {{ education_form.hidden_tag() }}
+          <div class="grid gap-3 sm:grid-cols-2">
+            {{ field(education_form.institution) }}
+            {{ field(education_form.qualification) }}
+            {{ field(education_form.field_of_study) }}
+            {{ field(education_form.start_date) }}
+            {{ field(education_form.end_date) }}
+          </div>
+          {{ textarea(education_form.description, rows=2) }}
+          <button type="submit"
+                  class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Add education</button>
+        </form>
+      </details>
     </div>
-    {% endif %}
   </section>
 
   <section>
     <h2 class="mb-4 text-sm font-medium">Work</h2>
-    {% if current_user.work_entries %}
-    <ul class="divide-y divide-border rounded-lg border border-border bg-card px-6">
-      {% for w in current_user.work_entries|sort(attribute="start_date", reverse=true) %}
-      <li class="py-3">
-        <p class="text-sm font-medium">{{ w.role }}{% if w.location %}, {{ w.location }}{% endif %}</p>
-        <p class="mt-0.5 text-xs text-muted-foreground tabular-nums">
-          {{ w.organization }} · {{ w.start_date.strftime("%b %Y") if w.start_date }} – {{ w.end_date.strftime("%b %Y") if w.end_date else "Present" }}
-        </p>
-        {% if w.description %}<p class="mt-1 whitespace-pre-line text-xs text-muted-foreground">{{ w.description }}</p>{% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
-      <p class="text-sm font-medium">No work entries yet</p>
-      <p class="mt-1 text-xs text-muted-foreground">Add one and it will appear on your CV.</p>
+    <div class="space-y-4">
+      {% if current_user.work_entries %}
+      <ul class="divide-y divide-border rounded-lg border border-border bg-card px-6">
+        {% for w in current_user.work_entries|sort(attribute="start_date", reverse=true) %}
+        <li class="flex items-start justify-between gap-4 py-3">
+          <div>
+            <p class="text-sm font-medium">{{ w.role }}{% if w.location %}, {{ w.location }}{% endif %}</p>
+            <p class="mt-0.5 text-xs text-muted-foreground tabular-nums">
+              {{ w.organization }} · {{ w.start_date.strftime("%b %Y") if w.start_date }} – {{ w.end_date.strftime("%b %Y") if w.end_date else "Present" }}
+            </p>
+            {% if w.description %}<p class="mt-1 whitespace-pre-line text-xs text-muted-foreground">{{ w.description }}</p>{% endif %}
+          </div>
+          <form method="post" action="{{ url_for('profile.work_delete', wid=w.id) }}"
+                onsubmit="return confirm('Delete this entry? This cannot be undone.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit"
+                    class="inline-flex h-8 items-center justify-center rounded-md bg-destructive px-3 text-sm font-medium text-white transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Delete</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+        <p class="text-sm font-medium">No work entries yet</p>
+        <p class="mt-1 text-xs text-muted-foreground">Add one below and it will appear on your CV.</p>
+      </div>
+      {% endif %}
+
+      <details class="rounded-lg border border-border bg-card">
+        <summary class="cursor-pointer select-none px-6 py-3 text-sm font-medium">Add work</summary>
+        <form method="post" action="{{ url_for('profile.work_new') }}" class="space-y-3 border-t border-border p-6">
+          {{ work_form.hidden_tag() }}
+          <div class="grid gap-3 sm:grid-cols-2">
+            {{ field(work_form.organization) }}
+            {{ field(work_form.role) }}
+            {{ field(work_form.location) }}
+            {{ field(work_form.start_date) }}
+            {{ field(work_form.end_date) }}
+          </div>
+          {{ textarea(work_form.description, rows=2) }}
+          <button type="submit"
+                  class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Add work</button>
+        </form>
+      </details>
     </div>
-    {% endif %}
   </section>
 </div>
 {% endblock %}
