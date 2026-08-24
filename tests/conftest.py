@@ -21,11 +21,20 @@ def app(tmp_path):
     yield app
     with app.app_context():
         db.drop_all()
+        for engine in db.engines.values():
+            engine.dispose()
 
 
 @pytest.fixture()
 def client(app):
     return app.test_client()
+
+
+@pytest.fixture()
+def session(app):
+    with app.app_context():
+        yield db.session
+        db.session.rollback()
 
 
 @pytest.fixture()

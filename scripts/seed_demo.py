@@ -10,6 +10,7 @@ import argparse
 from datetime import date, timedelta
 
 from flask import Flask
+from sqlalchemy import select
 
 from saathi import create_app
 from saathi.extensions import db
@@ -33,7 +34,7 @@ def run_seed(app: Flask, *, force: bool = False) -> str:
     """Populate the configured database; idempotent unless force rebuilds it."""
     with app.app_context():
         db.create_all()
-        seeded = db.session.query(User).filter_by(email=MARKER_EMAIL).first() is not None
+        seeded = db.session.scalar(select(User).where(User.email == MARKER_EMAIL)) is not None
         if seeded and not force:
             return ALREADY_SEEDED
         if force:
