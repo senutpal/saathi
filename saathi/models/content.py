@@ -53,6 +53,7 @@ class Tag(TimestampMixin, db.Model):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     name: Mapped[str] = mapped_column(String(40))
 
+    user: Mapped[User] = relationship()
     notes: Mapped[list[Note]] = relationship(secondary="note_tags", back_populates="tags")
 
 
