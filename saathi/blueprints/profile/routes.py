@@ -1,4 +1,4 @@
-"""Profile routes: personal-data view/edit plus education/work entry CRUD."""
+"""Profile routes: personal-data view/edit plus education/work entry CRUD and CV."""
 
 from __future__ import annotations
 
@@ -7,9 +7,26 @@ from flask_login import current_user
 
 from ...extensions import db
 from ...models import EducationEntry, Profile, WorkEntry
+from ...services.cv import build_cv_context, resolve_theme
 from ...utils import get_own_or_404
 from . import bp
 from .forms import EducationForm, ProfileForm, WorkForm
+
+try:
+    # Probe imports stay eager so a missing-Pango OSError surfaces at boot,
+    # never mid-request. Symbols are consumed by export_pdf / export_docx.
+    from weasyprint import CSS, HTML  # noqa: F401
+
+    HAS_WEASYPRINT = True
+except (OSError, ImportError):  # OSError = missing Pango DLLs on Windows
+    HAS_WEASYPRINT = False
+
+try:
+    from docxtpl import DocxTemplate  # noqa: F401  (consumed by export_docx)
+
+    HAS_DOCXTPL = True
+except ImportError:
+    HAS_DOCXTPL = False
 
 
 def _current_profile() -> Profile:
@@ -89,6 +106,22 @@ def work_delete(wid: int) -> Response:
     db.session.commit()
     flash("Work entry deleted.")
     return redirect(url_for("profile.view"))
+
+
+@bp.get("/cv")
+def cv_preview() -> str | tuple[str, int]:
+    ctx = build_cv_context(current_user)
+    if ctx is None:
+        return render_template("errors/cv_empty.html"), 409
+    theme = resolve_theme()
+    return render_template(
+        f"cv/themes/{theme}.html.jinja",
+        mode="screen",
+        theme=theme,
+        has_pdf=HAS_WEASYPRINT,
+        has_docx=HAS_DOCXTPL,
+        **ctx,
+    )
 
 
 def _education_entry(form: EducationForm) -> EducationEntry:

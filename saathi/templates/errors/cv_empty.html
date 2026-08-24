@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}CV not ready — Saathi{% endblock %}
+{% block header %}CV{% endblock %}
+{% block content %}
+<div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+  <p class="text-sm font-medium">Your CV is empty</p>
+  <p class="mt-1 max-w-md text-xs text-muted-foreground">
+    Save your personal details and add at least one education or work entry —
+    then your CV will generate automatically.
+  </p>
+  <a href="{{ url_for('profile.edit') }}"
+     class="mt-4 inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Edit profile</a>
+</div>
+{% endblock %}

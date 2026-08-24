@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from saathi.extensions import db
 from saathi.models import EducationEntry, Profile, WorkEntry
+from saathi.services.cv import build_cv_context, fmt_span, slugify
 
 EDU_DATA = {
     "institution": "NIT",
@@ -217,3 +218,105 @@ def test_missing_entry_delete_returns_404(logged_in_client) -> None:
     response = logged_in_client.post("/profile/education/9999/delete")
 
     assert response.status_code == 404
+
+
+def _seed_full_profile(http_client) -> None:
+    http_client.post(
+        "/profile/edit",
+        data={"full_name": "Ada Lovelace", "skills_csv": "Math, Python"},
+    )
+    http_client.post("/profile/education/new", data=EDU_DATA)
+    http_client.post("/profile/work/new", data=WORK_DATA)
+
+
+def test_cv_preview_409_when_nothing_saved(logged_in_client) -> None:
+    response = logged_in_client.get("/profile/cv")
+
+    assert response.status_code == 409
+    assert b"CV is empty" in response.data
+
+
+def test_cv_preview_409_with_profile_but_zero_entries(logged_in_client) -> None:
+    logged_in_client.post("/profile/edit", data={"full_name": "Ada Lovelace"})
+
+    response = logged_in_client.get("/profile/cv")
+
+    assert response.status_code == 409
+
+
+def test_cv_preview_renders_saved_data(logged_in_client) -> None:
+    _seed_full_profile(logged_in_client)
+
+    response = logged_in_client.get("/profile/cv")
+
+    assert response.status_code == 200
+    assert b"Ada Lovelace" in response.data
+    assert b"Education" in response.data
+    assert b"Experience" in response.data
+    assert b"Math" in response.data
+
+
+def test_unknown_theme_falls_back_classic(logged_in_client) -> None:
+    _seed_full_profile(logged_in_client)
+
+    response = logged_in_client.get("/profile/cv?theme=doesnotexist")
+
+    assert response.status_code == 200
+    assert b"Print / Save as PDF" in response.data
+
+
+def test_build_cv_context_returns_none_without_profile(session, make_user) -> None:
+    user = make_user()
+
+    assert build_cv_context(user) is None
+
+
+def test_build_cv_context_sorts_ongoing_first_then_newest(session, make_user) -> None:
+    user = make_user()
+    user.profile = Profile(full_name="Ada Lovelace", skills_csv="Math, Python ,SQL")
+    session.add(user.profile)
+    session.add_all(
+        [
+            EducationEntry(
+                user_id=user.id,
+                institution="Old School",
+                qualification="BSc",
+                start_date=date(2020, 1, 1),
+                end_date=date(2021, 1, 1),
+            ),
+            EducationEntry(
+                user_id=user.id,
+                institution="New Institute",
+                qualification="MSc",
+                start_date=date(2022, 1, 1),
+                end_date=None,
+            ),
+            EducationEntry(
+                user_id=user.id,
+                institution="Mid Academy",
+                qualification="Dip",
+                start_date=date(2023, 1, 1),
+                end_date=date(2023, 6, 30),
+            ),
+        ]
+    )
+    session.commit()
+
+    ctx = build_cv_context(user)
+
+    assert [e["org"] for e in ctx["education"]] == [
+        "New Institute",
+        "Mid Academy",
+        "Old School",
+    ]
+    assert ctx["skills"] == ["Math", "Python", "SQL"]
+
+
+def test_fmt_span_and_slugify() -> None:
+    dash = chr(0x2013)
+
+    assert fmt_span(date(2023, 8, 1), None) == f"Aug 2023 {dash} Present"
+    assert fmt_span(date(2020, 1, 1), date(2021, 2, 1)) == f"Jan 2020 {dash} Feb 2021"
+    assert fmt_span(None, None) == f"{chr(0x2014)} {dash} Present"
+    assert slugify("Ada Lovelace") == "ada-lovelace"
+    assert slugify("  ") == "cv"

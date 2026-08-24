@@ -1,0 +1,92 @@
+{% extends "base.html" if mode == "screen" else "cv/standalone.html" %}
+{% block title %}CV — {{ name }} — Saathi{% endblock %}
+{% block header %}CV preview{% endblock %}
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cv_print.css') }}">
+{% endblock %}
+{% block content %}
+<article class="cv {{ 'mx-auto max-w-3xl rounded-lg border border-border bg-card p-8' if mode == 'screen' else '' }}">
+  <header class="cv-header">
+    <h1 class="cv-name">{{ name }}</h1>
+    {% if headline %}<p class="cv-headline">{{ headline }}</p>{% endif %}
+    {% if contact %}<p class="cv-contact">{{ contact }}</p>{% endif %}
+  </header>
+
+  {% if summary %}
+  <section class="cv-section">
+    <h2>Summary</h2>
+    <p class="whitespace-pre-line">{{ summary }}</p>
+  </section>
+  {% endif %}
+
+  {% if skills %}
+  <section class="cv-section">
+    <h2>Skills</h2>
+    <p>{{ skills|join(" · ") }}</p>
+  </section>
+  {% endif %}
+
+  {% if education %}
+  <section class="cv-section">
+    <h2>Education</h2>
+    {% for e in education %}
+    <div class="entry">
+      <div class="entry-row">
+        <span class="entry-title">{{ e.title }}</span>
+        <span class="entry-span">{{ e.span }}</span>
+      </div>
+      <p class="entry-org">{{ e.org }}</p>
+      {% if e.desc %}<p class="entry-desc">{{ e.desc }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if work %}
+  <section class="cv-section">
+    <h2>Experience</h2>
+    {% for w in work %}
+    <div class="entry">
+      <div class="entry-row">
+        <span class="entry-title">{{ w.role }}{% if w.loc %}, {{ w.loc }}{% endif %}</span>
+        <span class="entry-span">{{ w.span }}</span>
+      </div>
+      <p class="entry-org">{{ w.org }}</p>
+      {% if w.desc %}<p class="entry-desc">{{ w.desc }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if likes or dislikes %}
+  <section class="cv-section">
+    <h2>Interests</h2>
+    {% if likes %}
+    <p><strong>Likes:</strong> {{ likes|join(" · ") }}</p>
+    {% endif %}
+    {% if dislikes %}
+    <p><strong>Dislikes:</strong> {{ dislikes|join(" · ") }}</p>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <footer class="cv-footer">Generated {{ generated_at.strftime("%d %b %Y") }} via Saathi</footer>
+</article>
+
+{% if mode == "screen" %}
+<div class="no-print mt-6 flex flex-wrap items-center gap-2">
+  <button type="button" onclick="window.print()"
+          class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Print / Save as PDF</button>
+  {% if has_pdf %}
+  <a href="{{ url_for('profile.export_pdf') }}"
+     class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Download PDF</a>
+  {% endif %}
+  {% if has_docx %}
+  <a href="{{ url_for('profile.export_docx') }}"
+     class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Download DOCX</a>
+  {% endif %}
+  <a href="{{ url_for('profile.view') }}"
+     class="inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Back to profile</a>
+</div>
+{% endif %}
+{% endblock %}
