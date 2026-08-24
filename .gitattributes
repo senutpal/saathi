@@ -1,0 +1,2 @@
+# Binary source artifacts must never be line-ending-normalized (B05 pitfall 7).
+*.docx -text

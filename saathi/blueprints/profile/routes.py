@@ -168,18 +168,24 @@ def export_docx() -> Response | tuple[str, int]:
         return render_template("errors/cv_empty.html"), 409
     theme = resolve_theme()
     template = DocxTemplate(Path(current_app.root_path) / "templates_docx" / "cv_template.docx")
-    template.render(
-        {
-            **ctx,
-            "generated_at_text": ctx["generated_at"].strftime("%d %b %Y"),
-            "likes_text": "\n".join(ctx["likes"]),
-            "dislikes_text": "\n".join(ctx["dislikes"]),
-        }
-    )
+    template.render(_docx_context(ctx), autoescape=True)
     buffer = io.BytesIO()
     template.save(buffer)
     docx_mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     return _send_cv_export(ctx["name"], buffer.getvalue(), "docx", docx_mime, theme)
+
+
+def _docx_context(ctx: dict) -> dict:
+    """Flatten CV data for the Word template; docx cannot loop splitlines inline."""
+    return {
+        **ctx,
+        "generated_at_text": ctx["generated_at"].strftime("%d %b %Y"),
+        "headline": ctx["headline"] or "",
+        "summary": ctx["summary"] or "",
+        "skills_text": ", ".join(ctx["skills"]),
+        "likes_text": "\n".join(ctx["likes"]),
+        "dislikes_text": "\n".join(ctx["dislikes"]),
+    }
 
 
 def _print_css_path() -> Path:

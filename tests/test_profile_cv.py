@@ -373,3 +373,42 @@ def test_pdf_export_degrades_gracefully_without_weasyprint(logged_in_client, mon
 
     assert response.status_code == 302
     assert "/profile/cv" in response.headers["Location"]
+
+
+def test_docx_export_happy_path(logged_in_client) -> None:
+    _seed_full_profile(logged_in_client)
+
+    response = logged_in_client.get("/profile/cv/export.docx")
+
+    assert response.status_code == 200
+    assert response.data[:4] == b"PK\x03\x04"
+    assert len(response.data) > 1000
+    assert (
+        response.mimetype
+        == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+
+
+def test_docx_export_409_when_nothing_saved(logged_in_client) -> None:
+    response = logged_in_client.get("/profile/cv/export.docx")
+
+    assert response.status_code == 409
+
+
+def test_docx_export_records_upload_row_and_audit_log(logged_in_client, session) -> None:
+    _seed_full_profile(logged_in_client)
+
+    logged_in_client.get("/profile/cv/export.docx")
+
+    upload = db.session.query(Upload).one()
+    assert upload.original_filename == "ada-lovelace-cv.docx"
+    assert db.session.query(ActivityLog).filter_by(activity_type="cv_export").count() == 1
+
+
+def test_docx_export_degrades_gracefully_without_docxtpl(logged_in_client, monkeypatch) -> None:
+    monkeypatch.setattr(profile_routes, "HAS_DOCXTPL", False)
+
+    response = logged_in_client.get("/profile/cv/export.docx")
+
+    assert response.status_code == 302
+    assert "/profile/cv" in response.headers["Location"]

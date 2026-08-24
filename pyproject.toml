@@ -24,6 +24,7 @@ dependencies = [
     "email-validator>=2.3.0",
     "flask-limiter>=4.1.1",
     "weasyprint==69.0",
+    "docxtpl==0.20.2",
 ]
 
 [build-system]
