@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 from flask import Flask, render_template
+from flask_limiter.errors import RateLimitExceeded
 
 from .config import BASE_DIR, MAP
 from .extensions import init_db, init_extensions
@@ -42,6 +43,8 @@ def register_error_handlers(app: Flask) -> None:
 
     app.register_error_handler(403, lambda _err: render(403))
     app.register_error_handler(404, lambda _err: render(404))
+    app.register_error_handler(429, lambda _err: render(429))
+    app.register_error_handler(RateLimitExceeded, lambda _err: render(429))
     app.register_error_handler(500, lambda _err: render(500))
 
 

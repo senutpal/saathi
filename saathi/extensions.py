@@ -2,6 +2,8 @@ import sqlite3
 
 from click import echo
 from flask import Flask
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
@@ -11,6 +13,7 @@ from sqlalchemy.engine import Engine
 db = SQLAlchemy()
 login_manager = LoginManager()
 csrf = CSRFProtect()
+limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
 
 PRAGMAS = (
     "PRAGMA foreign_keys=ON",
@@ -40,6 +43,7 @@ def init_extensions(app: Flask) -> None:
         return None  # real lookup lands in P03
 
     csrf.init_app(app)
+    limiter.init_app(app)
 
 
 def init_db(app: Flask) -> None:

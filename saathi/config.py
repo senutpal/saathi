@@ -42,6 +42,7 @@ class TestingConfig(Config):
     SAATHI_ENV = "testing"
     SCHEDULER_ENABLED = False
     WTF_CSRF_ENABLED = False
+    RATELIMIT_ENABLED = False
 
 
 MAP = {
