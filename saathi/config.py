@@ -17,6 +17,14 @@ class Config:
     MAX_CONTENT_LENGTH = int(os.environ.get("MAX_CONTENT_LENGTH", 5 * 1024 * 1024))
     TICK_TOKEN = os.environ.get("TICK_TOKEN", "")
     TICK_SECONDS = int(os.environ.get("TICK_SECONDS", "30"))
+    APP_URL = os.environ.get("APP_URL", "").rstrip("/")
+    MAIL_ENABLED = os.environ.get("MAIL_ENABLED", "").lower() in {"1", "true", "yes"}
+    MAIL_SERVER = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
+    MAIL_PORT = int(os.environ.get("MAIL_PORT", "465"))
+    MAIL_USERNAME = os.environ.get("MAIL_USERNAME", "")
+    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", "")
+    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", "Saathi <noreply@localhost>")
+    MAIL_TIMEOUT = float(os.environ.get("MAIL_TIMEOUT", "10"))
     LATE_THRESHOLD = timedelta(minutes=10)
     MISFIRE_GRACE = timedelta(hours=24)
     SCHEDULER_ENABLED = os.environ.get("SCHEDULER_ENABLED", "true").lower() in {

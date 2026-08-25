@@ -165,9 +165,11 @@ def test_tick_with_wrong_token_is_404(app, client) -> None:
     assert response.status_code == 404
 
 
-def test_tick_correct_token_runs_the_scan(app, client, clock, make_user, make_event) -> None:
+def test_tick_correct_token_runs_the_scan(app, client, make_user, make_event) -> None:
     app.config["TICK_TOKEN"] = "s3cret"
-    make_event(make_user(), event_at=clock() - timedelta(minutes=1))
+    # /tick scans with the real clock, so the seed must be relative to it —
+    # a FakeClock date ages past MISFIRE_GRACE and silently becomes a miss.
+    make_event(make_user(), event_at=utcnow() - timedelta(minutes=1))
 
     response = client.post("/tick", headers={"X-Tick-Token": "s3cret"})
 
@@ -176,10 +178,10 @@ def test_tick_correct_token_runs_the_scan(app, client, clock, make_user, make_ev
     assert len(_notifications()) == 1
 
 
-def test_tick_is_exempt_from_csrf(app, client, clock, make_user, make_event) -> None:
+def test_tick_is_exempt_from_csrf(app, client, make_user, make_event) -> None:
     app.config["TICK_TOKEN"] = "s3cret"
     app.config["WTF_CSRF_ENABLED"] = True
-    make_event(make_user(), event_at=clock() - timedelta(minutes=1))
+    make_event(make_user(), event_at=utcnow() - timedelta(minutes=1))
 
     response = client.post("/tick", headers={"X-Tick-Token": "s3cret"})
 

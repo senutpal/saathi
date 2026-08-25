@@ -24,6 +24,7 @@ from ..extensions import db
 from ..models import ActivityLog, Event, Notification
 from ..models.base import utcnow
 from ..utils import ist_format
+from .mailer import enqueue_email
 
 log = logging.getLogger("saathi.ticker")
 
@@ -68,10 +69,11 @@ def scan_and_fire(*, now_fn: Callable[[], datetime] = utcnow, limit: int = 50) -
     late_threshold = current_app.config["LATE_THRESHOLD"]
     fired = 0
     stalls = 0
+    emailed_ids: list[int] = []
     while True:
         try:
             with db.session.begin():
-                found, won = _claim_one(now, grace, late_threshold, limit)
+                found, won, notification_id = _claim_one(now, grace, late_threshold, limit)
         except OperationalError:
             db.session.rollback()
             stalls += 1
@@ -84,13 +86,21 @@ def scan_and_fire(*, now_fn: Callable[[], datetime] = utcnow, limit: int = 50) -
             break
         if won:
             fired += 1
+            if notification_id is not None:
+                emailed_ids.append(notification_id)
+    if emailed_ids:
+        # ids only exist once their insert committed, so this is always post-commit
+        try:
+            enqueue_email(current_app._get_current_object(), emailed_ids)
+        except Exception:  # noqa: BLE001 — never break the tick over email
+            log.exception("email enqueue failed")
     return fired
 
 
 def _claim_one(
     now: datetime, grace: timedelta, late_threshold: timedelta, limit: int
-) -> tuple[bool, int]:
-    """Process one due candidate; returns (candidate_found, claimed_by_us)."""
+) -> tuple[bool, int, int | None]:
+    """Process one due candidate; returns (candidate_found, claimed_by_us, notification_id)."""
     event = db.session.scalar(
         select(Event)
         .where(Event.status == "scheduled", Event.event_at <= now)
@@ -98,7 +108,7 @@ def _claim_one(
         .limit(limit)
     )
     if event is None:
-        return False, 0
+        return False, 0, None
     delta = now - event.event_at
     if delta > grace:
         target_status = "missed"
@@ -112,16 +122,16 @@ def _claim_one(
         .values(status=target_status, fired_at=now)
     )
     if claim.rowcount != 1:
-        return True, 0  # lost the race to a concurrent scanner; keep scanning
+        return True, 0, None  # lost the race to a concurrent scanner; keep scanning
+    notification_id: int | None = None
     if target_status != "missed":
-        db.session.add(
-            Notification(
-                user_id=event.user_id,
-                event_id=event.id,
-                title=event.title,
-                body=f"Due {ist_format(event.event_at)}",
-            )
+        notification = Notification(
+            user_id=event.user_id,
+            event_id=event.id,
+            title=event.title,
+            body=f"Due {ist_format(event.event_at)}",
         )
+        db.session.add(notification)
         db.session.add(
             ActivityLog(
                 user_id=event.user_id,
@@ -131,6 +141,8 @@ def _claim_one(
                 details=target_status,
             )
         )
+        db.session.flush()
+        notification_id = notification.id
     if event.repeat_rule != "none":
         db.session.add(
             Event(
@@ -142,7 +154,7 @@ def _claim_one(
                 alert_lead_minutes=event.alert_lead_minutes,
             )
         )
-    return True, 1
+    return True, 1, notification_id
 
 
 def _loop(app: Flask, interval: float, now_fn: Callable[[], datetime]) -> None:

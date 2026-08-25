@@ -14,6 +14,9 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js"
+          integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V"
+          crossorigin="anonymous"></script>
   <style type="text/tailwindcss">
     @custom-variant dark (&:where(.dark, .dark *));
     @theme inline {
@@ -66,13 +69,26 @@
     <header class="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-border bg-background/95 px-6 backdrop-blur no-print">
       <h1 class="text-sm font-semibold tracking-tight">{% block header %}{% endblock %}</h1>
       <div class="ml-auto flex items-center gap-2">
-        <button type="button" aria-label="Notifications"
-                class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
-          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-          </svg>
-        </button>
+        {% if current_user.is_authenticated %}
+        <div class="group relative"
+             hx-get="{{ url_for('notifications.count') }}"
+             hx-trigger="every 30s"
+             hx-swap="innerHTML">
+          <a href="{{ url_for('notifications.inbox') }}" aria-label="Notifications"
+             class="relative flex rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+            </svg>
+            {% include 'partials/_bell_count.html' %}
+          </a>
+          {% include 'partials/_bell_dropdown.html' %}
+        </div>
+        <noscript>
+          <a href="{{ url_for('notifications.inbox') }}"
+             class="rounded-md px-2 py-1 text-sm text-muted-foreground hover:text-foreground">Inbox</a>
+        </noscript>
+        {% endif %}
         <button type="button" onclick="toggleTheme()" aria-label="Toggle dark mode"
                 class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
           <svg class="size-4 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"

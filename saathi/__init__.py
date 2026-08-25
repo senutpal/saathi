@@ -31,12 +31,13 @@ def _configure_storage(app: Flask) -> None:
 
 
 def register_blueprints(app: Flask) -> None:
-    from .blueprints import auth, events, main, profile
+    from .blueprints import auth, events, main, notifications, profile
 
     app.register_blueprint(main.bp)
     app.register_blueprint(auth.bp)
     app.register_blueprint(profile.bp)
     app.register_blueprint(events.bp)
+    app.register_blueprint(notifications.bp)
 
 
 def register_error_handlers(app: Flask) -> None:
@@ -52,8 +53,10 @@ def register_error_handlers(app: Flask) -> None:
 
 def register_template_helpers(app: Flask) -> None:
     from . import utils
+    from .blueprints import notifications
 
     app.jinja_env.filters["ist"] = utils.ist_format
+    app.context_processor(notifications.bell_context)
 
 
 def _start_scheduler(app: Flask) -> None:
