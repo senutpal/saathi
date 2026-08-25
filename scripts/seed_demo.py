@@ -123,6 +123,15 @@ def run_seed(app: Flask, *, force: bool = False) -> str:
         reading = Note(user=demo, title="Reading list", content="- Flask docs\n- nh3 README")
         reading.tags.append(Tag(user=demo, name="ideas"))
 
+        def audit(activity_type: str, title: str, *, days_ago: int = 0) -> ActivityLog:
+            row = ActivityLog(
+                user=demo, activity_type=activity_type, title=title, occurred_at=utcnow()
+            )
+            if days_ago:
+                row.occurred_at -= timedelta(days=days_ago)
+            return row
+
+        last_year = utcnow() - timedelta(days=365)
         db.session.add_all(
             [
                 demo,
@@ -144,15 +153,16 @@ def run_seed(app: Flask, *, force: bool = False) -> str:
                 plants,
                 kickoff,
                 reading,
+                audit("note_created", "Created 'Kickoff minutes'"),
+                audit("event_created", "Created 'Stand-up with mentor'"),
+                audit("file_uploaded", "demo-gradient.png", days_ago=1),
+                audit("web_search_web", "flask tutorial", days_ago=2),
+                audit("login", "Signed in", days_ago=3),
                 ActivityLog(
                     user=demo,
                     activity_type="note_created",
-                    title="Created 'Kickoff minutes'",
-                ),
-                ActivityLog(
-                    user=demo,
-                    activity_type="event_created",
-                    title="Created 'Stand-up with mentor'",
+                    title="On-this-day: started Saathi",
+                    occurred_at=last_year,
                 ),
             ]
         )
