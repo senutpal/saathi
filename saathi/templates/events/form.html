@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "macros.html" import field, textarea %}
+{% block title %}{{ 'Edit reminder' if event else 'New reminder' }} — Saathi{% endblock %}
+{% block header %}{{ 'Edit reminder' if event else 'New reminder' }}{% endblock %}
+{% block content %}
+<form method="post" class="mx-auto mt-2 w-full max-w-2xl space-y-4 rounded-lg border border-border bg-card p-6">
+  {{ form.hidden_tag() }}
+  {{ field(form.title, placeholder="Call the dentist") }}
+  {{ textarea(form.description, rows=2, placeholder="optional details") }}
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    {{ field(form.event_at) }}
+    {{ field(form.repeat_rule) }}
+  </div>
+  {{ field(form.alert_lead_minutes, placeholder="30") }}
+  <p class="text-xs text-muted-foreground">You will enter local time (IST); it is stored as UTC.</p>
+  <div class="flex gap-2 border-t border-border pt-4">
+    <button type="submit"
+            class="inline-flex h-9 flex-1 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Save reminder</button>
+    <a href="{{ url_for('events.index') }}"
+       class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Cancel</a>
+  </div>
+</form>
+{% endblock %}

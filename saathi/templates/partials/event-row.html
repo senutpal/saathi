@@ -1,0 +1,32 @@
+{% set is_upcoming = event.status == 'scheduled' %}
+<li class="rounded-lg border border-border bg-card p-4">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div class="min-w-0">
+      <p class="truncate text-sm font-medium">{{ event.title }}</p>
+      <p class="mt-0.5 text-sm tabular-nums text-muted-foreground">{{ event.event_at | ist }}</p>
+      {% if event.description %}<p class="mt-1 text-sm text-muted-foreground">{{ event.description }}</p>{% endif %}
+      {% if event.repeat_rule != 'none' %}
+        <span class="mt-2 inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">Repeats {{ event.repeat_rule }}</span>
+      {% endif %}
+    </div>
+    <div class="flex shrink-0 items-center gap-2">
+      {% if is_upcoming %}
+        <span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">Scheduled</span>
+        <a href="{{ url_for('events.edit', event_id=event.id) }}"
+           class="inline-flex h-8 items-center justify-center rounded-md border border-border bg-card px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Edit</a>
+        <form action="{{ url_for('events.cancel', event_id=event.id) }}" method="post" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit"
+                  class="inline-flex h-8 items-center justify-center rounded-md border border-border bg-card px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Cancel</button>
+        </form>
+      {% else %}
+        <span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium capitalize {{ 'text-destructive' if event.status == 'missed' else 'text-muted-foreground' }}">{{ event.status.replace('_', ' ') }}</span>
+      {% endif %}
+      <form action="{{ url_for('events.delete', event_id=event.id) }}" method="post" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit"
+                class="inline-flex h-8 items-center justify-center rounded-md border border-border bg-card px-3 text-sm font-medium text-destructive transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Delete</button>
+      </form>
+    </div>
+  </div>
+</li>

@@ -9,6 +9,7 @@ from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
+from sqlalchemy.exc import OperationalError
 
 from saathi import create_app
 from saathi.extensions import db
@@ -188,6 +189,25 @@ def test_tick_is_exempt_from_csrf(app, client, clock, make_user, make_event) -> 
 
 def test_tick_rejects_get(client) -> None:
     assert client.get("/tick").status_code == 405
+
+
+def test_scan_retries_once_after_transient_lock_error(
+    app, clock, make_user, make_event, monkeypatch
+) -> None:
+    make_event(make_user(), event_at=clock())
+    real_claim = sched._claim_one
+    attempts = {"n": 0}
+
+    def flaky_claim(*args, **kwargs):
+        attempts["n"] += 1
+        if attempts["n"] == 1:
+            raise OperationalError("stmt", {}, Exception("database is locked"))
+        return real_claim(*args, **kwargs)
+
+    monkeypatch.setattr(sched, "_claim_one", flaky_claim)
+
+    assert sched.scan_and_fire(now_fn=clock) == 1
+    assert len(_notifications()) == 1
 
 
 def test_concurrent_scans_cannot_double_notify(app, clock, make_user, make_event) -> None:
