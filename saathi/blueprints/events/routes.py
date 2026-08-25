@@ -84,6 +84,7 @@ def edit(event_id: int) -> ResponseReturnValue:
     if form.validate_on_submit():
         for key, value in _form_values(form).items():
             setattr(event, key, value)
+        log_action(current_user.id, "event_updated", event.title[:120], event_id=event.id)
         db.session.commit()
         flash("Reminder updated.")
         return redirect(url_for("events.index"))

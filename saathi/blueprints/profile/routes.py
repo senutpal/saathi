@@ -71,6 +71,7 @@ def edit() -> str | Response:
         prof = _current_profile()
         form.populate_obj(prof)
         prof.full_name = prof.full_name.strip()
+        log_action(current_user.id, "profile_updated", "Profile details saved")
         db.session.commit()
         flash("Profile saved.")
         return redirect(url_for("profile.view"))
@@ -82,6 +83,11 @@ def education_new() -> Response:
     form = EducationForm()
     if form.validate_on_submit():
         db.session.add(_education_entry(form))
+        log_action(
+            current_user.id,
+            "profile_updated",
+            f"Added education ({form.institution.data.strip()[:80]})",
+        )
         db.session.commit()
         flash("Education entry added.")
     else:
@@ -92,6 +98,7 @@ def education_new() -> Response:
 @bp.post("/education/<int:eid>/delete")
 def education_delete(eid: int) -> Response:
     entry = get_own_or_404(EducationEntry, eid)
+    log_action(current_user.id, "profile_updated", f"Removed education ({entry.institution[:80]})")
     db.session.delete(entry)
     db.session.commit()
     flash("Education entry deleted.")
@@ -103,6 +110,11 @@ def work_new() -> Response:
     form = WorkForm()
     if form.validate_on_submit():
         db.session.add(_work_entry(form))
+        log_action(
+            current_user.id,
+            "profile_updated",
+            f"Added work ({form.organization.data.strip()[:80]})",
+        )
         db.session.commit()
         flash("Work entry added.")
     else:
@@ -113,6 +125,7 @@ def work_new() -> Response:
 @bp.post("/work/<int:wid>/delete")
 def work_delete(wid: int) -> Response:
     entry = get_own_or_404(WorkEntry, wid)
+    log_action(current_user.id, "profile_updated", f"Removed work ({entry.organization[:80]})")
     db.session.delete(entry)
     db.session.commit()
     flash("Work entry deleted.")
