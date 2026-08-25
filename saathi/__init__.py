@@ -54,8 +54,11 @@ def register_error_handlers(app: Flask) -> None:
 def register_template_helpers(app: Flask) -> None:
     from . import utils
     from .blueprints import notifications
+    from .services.markdown import highlight, render_md
 
     app.jinja_env.filters["ist"] = utils.ist_format
+    app.jinja_env.filters["md"] = render_md
+    app.jinja_env.filters["highlight"] = highlight
     app.context_processor(notifications.bell_context)
 
 
