@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Trash — Saathi{% endblock %}
+{% block header %}Notes · Trash{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <a href="{{ url_for('notes.index') }}" class="text-xs text-muted-foreground transition-colors hover:text-foreground">&larr; All notes</a>
+    <h2 class="mt-1 font-semibold tracking-tight">Trash</h2>
+    <p class="text-sm text-muted-foreground">{{ ghosts|length }} deleted note{{ 's' if ghosts|length != 1 }}. Restore to recover, or purge forever.</p>
+  </div>
+</div>
+
+{% if ghosts %}
+<ul class="space-y-3">
+  {% for note in ghosts %}
+  <li class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+    <div class="min-w-0">
+      <p class="truncate text-sm font-medium">{{ note.title }}</p>
+      <p class="mt-0.5 text-xs tabular-nums text-muted-foreground">Deleted {{ note.deleted_at|ist }}</p>
+    </div>
+    <div class="flex shrink-0 items-center gap-2">
+      <form action="{{ url_for('notes.restore', note_id=note.id) }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit"
+                class="inline-flex h-8 items-center justify-center rounded-md border border-border bg-card px-3 text-xs font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Restore</button>
+      </form>
+      <form action="{{ url_for('notes.purge', note_id=note.id) }}" method="post"
+            onsubmit="return confirm('Permanently delete this note? This cannot be undone.')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit"
+                class="inline-flex h-8 items-center justify-center rounded-md bg-destructive px-3 text-xs font-medium text-white transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Purge</button>
+      </form>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+  <p class="text-sm font-medium">Trash is empty</p>
+  <p class="mt-1 text-sm text-muted-foreground">Deleted notes wait here until restored or purged.</p>
+</div>
+{% endif %}
+{% endblock %}

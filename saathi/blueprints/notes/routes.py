@@ -5,6 +5,7 @@ from __future__ import annotations
 from flask import abort, flash, redirect, render_template, request, url_for
 from flask.typing import ResponseReturnValue
 from flask_login import current_user
+from sqlalchemy import select
 
 from ...extensions import db
 from ...models import Note
@@ -21,6 +22,14 @@ PER_PAGE = 20
 def _active_or_404(note_id: int) -> Note:
     note = get_own_or_404(Note, note_id)
     if note.deleted_at is not None:
+        abort(404)
+    return note
+
+
+def _trashed_or_404(note_id: int) -> Note:
+    """Trash actions target ghosts only; restoring/purging a live note is a 404."""
+    note = get_own_or_404(Note, note_id)
+    if note.deleted_at is None:
         abort(404)
     return note
 
@@ -107,3 +116,34 @@ def delete(note_id: int) -> ResponseReturnValue:
     db.session.commit()
     flash("Note moved to trash.")
     return redirect(url_for("notes.index"))
+
+
+@bp.get("/trash")
+def trash() -> str:
+    ghosts = db.session.scalars(
+        select(Note)
+        .where(Note.user_id == current_user.id, Note.deleted_at.is_not(None))
+        .order_by(Note.deleted_at.desc())
+    ).all()
+    return render_template("notes/trash.html", ghosts=ghosts)
+
+
+@bp.post("/<int:note_id>/restore")
+def restore(note_id: int) -> ResponseReturnValue:
+    note = _trashed_or_404(note_id)
+    note.deleted_at = None
+    log_action(current_user.id, "note_restored", note.title[:120])
+    db.session.commit()
+    flash("Note restored.")
+    return redirect(url_for("notes.trash"))
+
+
+@bp.post("/<int:note_id>/purge")
+def purge(note_id: int) -> ResponseReturnValue:
+    """Hard delete from Trash; note_tags rows cascade away with the row."""
+    note = _trashed_or_404(note_id)
+    log_action(current_user.id, "note_purged", note.title[:120])
+    db.session.delete(note)
+    db.session.commit()
+    flash("Note permanently deleted.")
+    return redirect(url_for("notes.trash"))

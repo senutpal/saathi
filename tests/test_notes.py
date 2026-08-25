@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 import pytest
+from sqlalchemy import select, text
 
 from saathi.extensions import db
 from saathi.models import ActivityLog, Event, Note, User
@@ -307,6 +308,128 @@ def test_edit_form_prefills_existing_values(logged_in_client, session):
 
     assert 'value="Prefill me"' in page
     assert 'value="keep-me"' in page
+
+
+# --- S7 trash lifecycle -----------------------------------------------------
+
+
+def test_delete_hides_note_from_list_search_and_view(logged_in_client, session):
+    user = _sole_user()
+    ghost = _seed_note(user.id, title="Ghost note", content="boo")
+    _seed_note(user.id, title="Live note", content="hello")
+    sync_note_tags(ghost, "haunted")
+    db.session.commit()
+
+    response = logged_in_client.post(f"/notes/{ghost.id}/delete")
+
+    assert response.status_code == 302
+    assert logged_in_client.get(f"/notes/{ghost.id}").status_code == 404
+
+    listing = logged_in_client.get("/notes").data.decode()
+    assert "Live note" in listing
+    assert "Ghost note" not in listing
+
+    searched = logged_in_client.get("/notes?q=boo").data.decode()
+    assert "Ghost note" not in searched
+
+    tagged = logged_in_client.get("/notes?tag=haunted").data.decode()
+    assert "Ghost note" not in tagged
+
+
+def test_deleted_note_waits_in_trash_and_restore_revives_it(logged_in_client, session):
+    user = _sole_user()
+    note = _seed_note(user.id, title="Comeback", content="c")
+
+    logged_in_client.post(f"/notes/{note.id}/delete")
+    trash_page = logged_in_client.get("/notes/trash").data.decode()
+
+    assert "Comeback" in trash_page
+    assert f'action="/notes/{note.id}/restore"' in trash_page
+
+    response = logged_in_client.post(f"/notes/{note.id}/restore")
+
+    assert response.status_code == 302
+    assert logged_in_client.get(f"/notes/{note.id}").status_code == 200
+    assert "Comeback" in logged_in_client.get("/notes").data.decode()
+
+
+def test_purge_hard_deletes_row_and_cascades_tags(logged_in_client, session):
+    user = _sole_user()
+    note = _seed_note(user.id, title="Doomed", content="c")
+    sync_note_tags(note, "doomed-tag")
+    db.session.commit()
+
+    logged_in_client.post(f"/notes/{note.id}/delete")
+    response = logged_in_client.post(f"/notes/{note.id}/purge")
+
+    assert response.status_code == 302
+    assert db.session.get(Note, note.id) is None
+    junctions = db.session.execute(
+        text("SELECT COUNT(*) FROM note_tags WHERE note_id = :nid"), {"nid": note.id}
+    ).scalar_one()
+    assert junctions == 0
+    assert "Doomed" not in logged_in_client.get("/notes/trash").data.decode()
+
+
+def test_trash_actions_on_active_note_return_404(logged_in_client, session):
+    user = _sole_user()
+    live = _seed_note(user.id, title="Alive", content="c")
+
+    assert logged_in_client.post(f"/notes/{live.id}/restore").status_code == 404
+    assert logged_in_client.post(f"/notes/{live.id}/purge").status_code == 404
+    assert db.session.get(Note, live.id) is not None
+
+
+def test_trash_actions_of_a_are_invisible_to_user_b(logged_in_client, other_client, session):
+    owner = _user_by_email("a@example.com")
+    note = _seed_note(owner.id, title="Not yours", content="c")
+
+    assert other_client.post(f"/notes/{note.id}/delete").status_code == 404
+
+    logged_in_client.post(f"/notes/{note.id}/delete")
+
+    assert other_client.post(f"/notes/{note.id}/restore").status_code == 404
+    assert other_client.post(f"/notes/{note.id}/purge").status_code == 404
+    assert db.session.get(Note, note.id) is not None
+    assert "Not yours" not in other_client.get("/notes/trash").data.decode()
+
+
+# --- S8 activity hooks -------------------------------------------------------
+
+
+def test_lifecycle_writes_full_audit_trail_newest_first(logged_in_client, session):
+    user = _sole_user()
+
+    created = logged_in_client.post(
+        "/notes/new", data={"title": "Audited", "body": "c", "tags": "life"}
+    )
+    note_id = int(created.headers["Location"].rsplit("/", 1)[-1])
+    logged_in_client.post(f"/notes/{note_id}/edit", data={"title": "Audited!", "body": "c"})
+    logged_in_client.post(f"/notes/{note_id}/delete")
+    logged_in_client.post(f"/notes/{note_id}/restore")
+    logged_in_client.post(f"/notes/{note_id}/delete")
+    logged_in_client.post(f"/notes/{note_id}/purge")
+
+    verbs = [
+        row.activity_type
+        for row in db.session.scalars(
+            select(ActivityLog)
+            .where(
+                ActivityLog.user_id == user.id,
+                ActivityLog.activity_type.like("note\\_%", escape="\\"),
+            )
+            .order_by(ActivityLog.id.desc())
+        ).all()
+    ]
+
+    assert verbs == [
+        "note_purged",
+        "note_deleted",
+        "note_restored",
+        "note_deleted",
+        "note_updated",
+        "note_created",
+    ]
 
 
 # --- ownership ---------------------------------------------------------------
