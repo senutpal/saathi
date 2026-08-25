@@ -34,6 +34,7 @@ class Config:
         "yes",
     }
     TIMEZONE = os.environ.get("TZ", "Asia/Kolkata")
+    WEATHER_CITY = os.environ.get("WEATHER_CITY", "")
     SAATHI_ENV = os.environ.get("FLASK_ENV", "development")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SESSION_COOKIE_HTTPONLY = True
