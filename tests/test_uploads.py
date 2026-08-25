@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import gc
 import io
-import warnings
 from pathlib import Path
 
 import pytest
@@ -153,17 +151,18 @@ def test_decompression_bomb_rejected_cleanly(logged_in_client, app, monkeypatch)
 
 
 def test_oversize_body_returns_413_friendly_page(logged_in_client):
-    response = upload(logged_in_client, b"x" * (6 * 1024 * 1024), "big.txt")
+    # Raw body instead of multipart: werkzeug's test client spools multipart
+    # to a temp file it abandons on the 413 abort (ResourceWarning time bomb
+    # under filterwarnings=error). The limit gate only reads Content-Length,
+    # so a plain oversized body exercises the identical server path leak-free.
+    response = logged_in_client.post(
+        "/files/upload",
+        data=b"x" * (6 * 1024 * 1024),
+        content_type="application/octet-stream",
+    )
 
     assert response.status_code == 413
     assert b"5 MB" in response.data
-
-    # werkzeug 3.1's multipart parser abandons its spooled temp file when it
-    # aborts mid-stream on MAX_CONTENT_LENGTH; collect now so the resulting
-    # ResourceWarning stays scoped here instead of failing the NEXT test
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=ResourceWarning)
-        gc.collect()
 
 
 def test_service_size_guard_rejects_before_write(app, make_user):
