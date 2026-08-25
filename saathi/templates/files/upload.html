@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Upload — Saathi{% endblock %}
+{% block header %}Upload a file{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data"
+      class="mx-auto mt-2 w-full max-w-2xl space-y-4 rounded-lg border border-border bg-card p-6">
+  {{ form.hidden_tag() }}
+  <div>
+    {{ form.file.label(class="mb-1.5 block text-sm font-medium") }}
+    {{ form.file(class_="block w-full rounded-md border border-input bg-card py-1.5 text-sm shadow-none file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1 file:text-xs file:font-medium file:text-muted-foreground hover:file:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+    {% for error in form.file.errors %}<p class="mt-1 text-xs text-destructive">{{ error }}</p>{% endfor %}
+  </div>
+  <p class="text-xs text-muted-foreground">Max 5 MB per file. Allowed types: png, jpg, jpeg, gif, webp, pdf, txt, csv, docx.</p>
+  <div class="flex gap-2 border-t border-border pt-4">
+    <button type="submit"
+            class="inline-flex h-9 flex-1 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Upload</button>
+    <a href="{{ url_for('files.gallery') }}"
+       class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Cancel</a>
+  </div>
+</form>
+{% endblock %}

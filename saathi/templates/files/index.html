@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Files — Saathi{% endblock %}
+{% block header %}Files{% endblock %}
+{% block content %}
+<div class="space-y-6">
+  <div class="flex items-center justify-between gap-4">
+    <p class="text-sm text-muted-foreground tabular-nums">
+      {{ used|filesizeformat }} of {{ quota|filesizeformat }} used
+    </p>
+    <a href="{{ url_for('files.upload') }}"
+       class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Upload file</a>
+  </div>
+
+  {% if files %}
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+    {% for f in files %}
+    <article class="rounded-lg border border-border bg-card p-4">
+      {% if f.is_image %}
+      <img src="{{ url_for('files.thumb', fid=f.id) }}" alt="{{ f.original_filename }}"
+           loading="lazy"
+           class="aspect-square w-full rounded-md border border-border object-cover">
+      {% else %}
+      <div class="grid aspect-square w-full place-items-center rounded-md border border-border bg-muted text-muted-foreground">
+        <svg class="size-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+          <path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>
+        </svg>
+      </div>
+      {% endif %}
+      <h3 class="mt-3 truncate text-sm font-medium" title="{{ f.original_filename }}">{{ f.original_filename }}</h3>
+      <p class="mt-0.5 text-xs text-muted-foreground tabular-nums">{{ f.size_bytes|filesizeformat }} · {{ f.uploaded_at|ist }}</p>
+      <div class="mt-3 flex gap-2 border-t border-border pt-3">
+        <a href="{{ url_for('files.download', fid=f.id) }}"
+           class="inline-flex h-8 flex-1 items-center justify-center rounded-md border border-border bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Download</a>
+        <form method="post" action="{{ url_for('files.delete', fid=f.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit"
+                  class="inline-flex h-8 items-center justify-center rounded-md bg-destructive px-3 text-xs font-medium text-white transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Delete</button>
+        </form>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+    <p class="text-sm font-medium">No files yet</p>
+    <p class="mt-1 text-xs text-muted-foreground">Pictures and documents you upload stay private to your account.</p>
+    <a href="{{ url_for('files.upload') }}"
+       class="mt-4 inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Upload your first file</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

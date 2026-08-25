@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}413 — Saathi{% endblock %}
+{% block header %}File too large{% endblock %}
+{% block content %}
+<div class="rounded-lg border border-border bg-card p-6">
+  <p class="text-2xl font-semibold tracking-tight tabular-nums">413</p>
+  <p class="mt-2 text-sm text-muted-foreground">That file is larger than the 5 MB limit. Pick a smaller file and try again.</p>
+  <a href="{{ url_for('files.gallery') }}" class="mt-4 inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Back to Files</a>
+</div>
+{% endblock %}

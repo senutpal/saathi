@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 
-from flask import Flask, render_template
+from flask import Flask, flash, render_template
 from flask_limiter.errors import RateLimitExceeded
 
 from .config import BASE_DIR, MAP
@@ -31,7 +31,7 @@ def _configure_storage(app: Flask) -> None:
 
 
 def register_blueprints(app: Flask) -> None:
-    from .blueprints import auth, events, main, notes, notifications, profile
+    from .blueprints import auth, events, files, main, notes, notifications, profile
 
     app.register_blueprint(main.bp)
     app.register_blueprint(auth.bp)
@@ -39,14 +39,22 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(events.bp)
     app.register_blueprint(notifications.bp)
     app.register_blueprint(notes.bp)
+    app.register_blueprint(files.bp)
 
 
 def register_error_handlers(app: Flask) -> None:
     def render(code: int):
         return render_template(f"errors/{code}.html"), code
 
+    def too_large(_err):
+        # the CSRF token is already consumed on an oversize POST; flash survives
+        # via the session while the 413 status stays honest for tests/clients
+        flash("That file is larger than the 5 MB limit.", "error")
+        return render(413)
+
     app.register_error_handler(403, lambda _err: render(403))
     app.register_error_handler(404, lambda _err: render(404))
+    app.register_error_handler(413, too_large)
     app.register_error_handler(429, lambda _err: render(429))
     app.register_error_handler(RateLimitExceeded, lambda _err: render(429))
     app.register_error_handler(500, lambda _err: render(500))
