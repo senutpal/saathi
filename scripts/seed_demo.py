@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import argparse
 from datetime import date, timedelta
+from io import BytesIO
 
 from flask import Flask
 from sqlalchemy import select
+from werkzeug.datastructures import FileStorage
 
 from saathi import create_app
 from saathi.extensions import db
@@ -25,9 +27,49 @@ from saathi.models import (
     WorkEntry,
     utcnow,
 )
+from saathi.services.uploads import save_upload
 
 MARKER_EMAIL = "demo@saathi.app"
 ALREADY_SEEDED = "already seeded; pass --force to rebuild"
+
+MINIMAL_PDF = (
+    b"%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n"
+    b"2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n"
+    b"3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>endobj\n"
+    b"trailer<</Size 4/Root 1 0 R>>\n%%EOF"
+)
+
+
+def _png_bytes() -> bytes:
+    from PIL import Image
+
+    im = Image.new("RGB", (320, 220))
+    pixels = im.load()
+    for x in range(320):
+        for y in range(220):
+            pixels[x, y] = (40 + x * 60 // 320, 60 + y * 80 // 220, 120)
+    buf = BytesIO()
+    im.save(buf, "PNG")
+    return buf.getvalue()
+
+
+def _demo_uploads(user: User) -> list[str]:
+    """Route the demo files through the real validation ladder so the
+    gallery, thumbs and audit rows all look production-born on stage."""
+    items = [
+        (_png_bytes(), "demo-gradient.png", "image/png"),
+        (MINIMAL_PDF, "project-outline.pdf", "application/pdf"),
+        (
+            b"Saathi demo notes\n- upload ladder\n- gallery grid\n",
+            "demo-notes.txt",
+            "text/plain",
+        ),
+    ]
+    made = []
+    for data, name, content_type in items:
+        storage = FileStorage(stream=BytesIO(data), filename=name, content_type=content_type)
+        made.append(save_upload(storage, user).original_filename)
+    return made
 
 
 def run_seed(app: Flask, *, force: bool = False) -> str:
@@ -115,7 +157,9 @@ def run_seed(app: Flask, *, force: bool = False) -> str:
             ]
         )
         db.session.commit()
-    return f"seeded {MARKER_EMAIL} / demo1234 (+1 alt user); reminder due in ~2 min"
+        made = _demo_uploads(demo)
+    files = ", ".join(made)
+    return f"seeded {MARKER_EMAIL} / demo1234 (+1 alt user); files: {files}; reminder due in ~2 min"
 
 
 def main() -> None:
