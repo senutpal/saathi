@@ -58,6 +58,10 @@ class TestingConfig(Config):
     SCHEDULER_ENABLED = False
     WTF_CSRF_ENABLED = False
     RATELIMIT_ENABLED = False
+    # load_dotenv() imports the developer's .env at module import; without this
+    # pin a locally-set WEATHER_CITY leaks live network calls into every test
+    # that renders the dashboard (and breaks the query budget).
+    WEATHER_CITY = ""
 
 
 MAP = {
