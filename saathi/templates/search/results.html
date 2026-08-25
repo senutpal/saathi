@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Search — Saathi{% endblock %}
+{% block header %}Search{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-3xl p-6 lg:p-8">
+  <form method="get" action="{{ url_for('search.search') }}" role="search"
+        class="mx-auto my-6 flex max-w-xl gap-2">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search the web…" aria-label="Search the web" autofocus
+           class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+    <button type="submit"
+            class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Search</button>
+  </form>
+
+  {% if hint %}
+  <p class="mx-auto max-w-xl text-center text-sm text-muted-foreground">{{ hint }}</p>
+  {% endif %}
+
+  {% if outcome %}
+    {% if outcome.error %}
+    <div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+      <p class="text-sm font-medium">Search is unavailable right now</p>
+      <p class="mt-1 text-sm text-muted-foreground">The search backends did not answer — please try again in a moment.</p>
+    </div>
+    {% else %}
+    <p class="mb-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+      <span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 font-medium">
+        {%- if outcome.source == 'cached' %}Cached{% elif outcome.source == 'wikipedia' %}Wikipedia{% else %}Web{% endif -%}
+      </span>
+      {% if outcome.fetched_at %}<span class="tabular-nums">{{ outcome.fetched_at|ist }}</span>{% endif %}
+    </p>
+    <ul class="space-y-3">
+      {% for r in outcome.results %}
+      <li class="rounded-lg border border-border bg-card p-4">
+        <a href="{{ r.href }}" target="_blank" rel="noopener noreferrer" class="hover:underline">
+          <h3 class="text-sm font-medium leading-snug">{{ r.title }}</h3>
+        </a>
+        <p class="truncate text-xs text-muted-foreground">{{ r.href }}</p>
+        <p class="mt-1 text-sm text-muted-foreground">{{ r.body }}</p>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  {% elif q and not hint %}
+  <div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+    <p class="text-sm font-medium">No results</p>
+    <p class="mt-1 text-sm text-muted-foreground">Try different keywords.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
