@@ -15,6 +15,7 @@ class Config:
     DATABASE_PATH = os.environ.get("DATABASE_PATH", str(BASE_DIR / "instance" / "saathi.db"))
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", str(BASE_DIR / "uploads"))
     MAX_CONTENT_LENGTH = int(os.environ.get("MAX_CONTENT_LENGTH", 5 * 1024 * 1024))
+    UPLOAD_QUOTA_BYTES = int(os.environ.get("UPLOAD_QUOTA_BYTES", 50 * 1024 * 1024))
     TICK_TOKEN = os.environ.get("TICK_TOKEN", "")
     TICK_SECONDS = int(os.environ.get("TICK_SECONDS", "30"))
     APP_URL = os.environ.get("APP_URL", "").rstrip("/")

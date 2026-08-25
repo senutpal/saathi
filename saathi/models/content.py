@@ -80,6 +80,7 @@ class Upload(TimestampMixin, db.Model):
     stored_filename: Mapped[str] = mapped_column(String(64), unique=True)
     mime_type: Mapped[str | None] = mapped_column(String(120))
     size_bytes: Mapped[int] = mapped_column(default=0)
+    is_image: Mapped[bool] = mapped_column(default=False)
     uploaded_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     user: Mapped[User] = relationship(back_populates="uploads")
