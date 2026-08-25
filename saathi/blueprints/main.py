@@ -2,9 +2,10 @@ import hmac
 
 from flask import Blueprint, abort, current_app, render_template, request
 from flask.typing import ResponseReturnValue
-from flask_login import login_required
+from flask_login import current_user, login_required
 
 from ..extensions import csrf
+from ..services.briefing import build_briefing
 from ..services.scheduler import scan_and_fire
 
 bp = Blueprint("main", __name__)
@@ -13,7 +14,7 @@ bp = Blueprint("main", __name__)
 @bp.get("/")
 @login_required
 def index() -> str:
-    return render_template("main/home.html")
+    return render_template("main/home.html", **build_briefing(current_user.id))
 
 
 @bp.get("/dev/style")

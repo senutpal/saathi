@@ -4,22 +4,106 @@
 {% block content %}
 <div class="space-y-6">
   <div class="rounded-lg border border-border bg-card p-6">
-    <h2 class="text-sm font-medium">Welcome back, {{ current_user.username }}</h2>
+    <h2 class="font-semibold tracking-tight">{{ greeting }}, {{ current_user.username }}</h2>
+    <p class="mt-1 text-sm tabular-nums text-muted-foreground">{{ today.strftime('%A, %d %B %Y') }}</p>
+    {% if on_this_day %}
     <p class="mt-1 text-xs text-muted-foreground">
-      Your daily briefing lands here in a later phase — meanwhile, jump into any module.
+      On this day in {{ on_this_day.occurred_at.strftime('%Y') }}: {{ on_this_day.title }}
     </p>
+    {% endif %}
+  </div>
+
+  {% if overdue_count or unread_count %}
+  <div class="flex flex-wrap items-center gap-2" aria-label="Attention needed">
+    {% if overdue_count %}
+    <a href="{{ url_for('events.index') }}"
+       class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-destructive transition-colors hover:text-destructive/80">
+      {{ overdue_count }} reminder{{ 's' if overdue_count != 1 }} past due
+    </a>
+    {% endif %}
+    {% if unread_count %}
+    <a href="{{ url_for('notifications.inbox') }}"
+       class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+      {{ unread_count }} unread notification{{ 's' if unread_count != 1 }}
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <section class="rounded-lg border border-border bg-card p-6 sm:col-span-2 lg:col-span-2" aria-label="Today's schedule">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-medium">Today's schedule</h3>
+        <a href="{{ url_for('events.day', date=today.isoformat()) }}" class="text-xs text-muted-foreground transition-colors hover:text-foreground">Day view</a>
+      </div>
+      {% if today_events %}
+      <ul class="mt-4 space-y-2">
+        {% for event in today_events %}
+        <li class="flex items-center justify-between gap-3 rounded-md border border-border p-3">
+          <div class="min-w-0">
+            <p class="truncate text-sm font-medium">{{ event.title }}</p>
+            <p class="text-xs tabular-nums text-muted-foreground">{{ event.event_at | ist }}</p>
+          </div>
+          <span class="inline-flex shrink-0 items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium capitalize {{ 'text-destructive' if event.status == 'missed' else 'text-muted-foreground' }}">{{ event.status.replace('_', ' ') }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="mt-4 text-sm text-muted-foreground">Nothing scheduled for today.</p>
+      {% endif %}
+    </section>
+
+    {% if weather %}
+    <section class="rounded-lg border border-border bg-card p-6" aria-label="Weather">
+      <h3 class="text-sm font-medium">Weather · {{ weather.city }}</h3>
+      <p class="mt-2 text-3xl font-semibold tabular-nums">{{ weather.temp_c }}°C</p>
+      <p class="text-sm text-muted-foreground">{{ weather.desc }}</p>
+      <p class="mt-1 text-xs tabular-nums text-muted-foreground">Wind {{ weather.wind_kmh }} km/h</p>
+    </section>
+    {% endif %}
+
+    <section class="rounded-lg border border-border bg-card p-6" aria-label="Recent notes">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-medium">Recent notes</h3>
+        <a href="{{ url_for('notes.index') }}" class="text-xs text-muted-foreground transition-colors hover:text-foreground">All notes</a>
+      </div>
+      {% if recent_notes %}
+      <div class="mt-4 flex flex-wrap gap-1.5">
+        {% for note in recent_notes %}
+        <a href="{{ url_for('notes.view', note_id=note.id) }}"
+           class="max-w-full truncate rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">{{ note.title }}</a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="mt-4 text-sm text-muted-foreground">No notes yet — write your first one.</p>
+      {% endif %}
+    </section>
+
+    {% if not has_habits %}
+    <section class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-6 text-center" aria-label="Habits coming soon">
+      <h3 class="text-sm font-medium">Habits</h3>
+      <p class="mt-1 text-xs text-muted-foreground">Streak tracking arrives in a future update.</p>
+    </section>
+    {% endif %}
+
+    {% if not has_moods %}
+    <section class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-6 text-center" aria-label="Mood journal coming soon">
+      <h3 class="text-sm font-medium">Mood journal</h3>
+      <p class="mt-1 text-xs text-muted-foreground">Daily mood trends arrive in a future update.</p>
+    </section>
+    {% endif %}
   </div>
 
   <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
     {% set modules = [
       ('Profile', 'Personal data, education and work history.', '/profile', true),
       ('CV', 'Themed résumé preview with PDF and DOCX export.', '/profile/cv', true),
-      ('Events', 'Reminders with repeat rules.', '/events', false),
+      ('Events', 'Reminders with repeat rules.', '/events', true),
       ('Calendar', 'Month view of everything scheduled.', '/calendar', false),
       ('Notes', 'Markdown notes with tags.', '/notes', true),
       ('Files', 'Your private gallery.', '/files', true),
-      ('Search', 'Keyless web search.', '/search', false),
-      ('History', 'Everything Saathi did for you.', '/history', false)
+      ('Search', 'Keyless web search.', '/search', true),
+      ('History', 'Everything Saathi did for you.', '/history', true)
     ] %}
     {% for title, description, href, live in modules %}
     <a href="{{ href if live else '#'}}"
