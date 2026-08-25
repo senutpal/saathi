@@ -15,6 +15,7 @@ dependencies = [
     "pillow>=12.3,<13",
     "filetype",
     "python-dotenv",
+    "tzdata==2026.3",
     "waitress",
     "ddgs>=9.15,<10",
     "icalendar>=7.3,<8",
