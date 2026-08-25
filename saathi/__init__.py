@@ -50,7 +50,17 @@ def register_error_handlers(app: Flask) -> None:
 
 
 def register_template_helpers(app: Flask) -> None:
-    """Hook point where later phases register Jinja filters and globals."""
+    from . import utils
+
+    app.jinja_env.filters["ist"] = utils.ist_format
+
+
+def _start_scheduler(app: Flask) -> None:
+    # The debug reloader runs parent+child; only the reloader child may tick.
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
+        from .services.scheduler import start_ticker
+
+        start_ticker(app)
 
 
 def _log_startup(app: Flask) -> None:
@@ -80,6 +90,7 @@ def create_app(test_config: dict | None = None) -> Flask:
     register_blueprints(app)
     register_error_handlers(app)
     register_template_helpers(app)
+    _start_scheduler(app)
 
     @app.get("/healthz")
     def healthz():

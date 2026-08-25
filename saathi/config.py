@@ -16,6 +16,9 @@ class Config:
     UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", str(BASE_DIR / "uploads"))
     MAX_CONTENT_LENGTH = int(os.environ.get("MAX_CONTENT_LENGTH", 5 * 1024 * 1024))
     TICK_TOKEN = os.environ.get("TICK_TOKEN", "")
+    TICK_SECONDS = int(os.environ.get("TICK_SECONDS", "30"))
+    LATE_THRESHOLD = timedelta(minutes=10)
+    MISFIRE_GRACE = timedelta(hours=24)
     SCHEDULER_ENABLED = os.environ.get("SCHEDULER_ENABLED", "true").lower() in {
         "1",
         "true",

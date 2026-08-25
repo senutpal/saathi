@@ -1,14 +1,49 @@
-"""Shared request-level helpers: safe redirects, owned fetches, audit rows."""
+"""Shared helpers: safe redirects, owned fetches, audit rows, TZ boundaries."""
 
 from __future__ import annotations
 
+from datetime import UTC, date, datetime, time, timedelta
 from urllib.parse import urlsplit
+from zoneinfo import ZoneInfo
 
-from flask import abort
+from flask import abort, current_app
 from flask_login import current_user
 
 from .extensions import db
 from .models import ActivityLog
+
+
+def local_zone() -> ZoneInfo:
+    """The display/input timezone (config TIMEZONE); storage stays naive UTC."""
+    return ZoneInfo(current_app.config["TIMEZONE"])
+
+
+def ist_to_utc_naive(wall: datetime) -> datetime:
+    """Local wall-clock datetime -> naive UTC coordinate (the input boundary)."""
+    return wall.replace(tzinfo=local_zone()).astimezone(UTC).replace(tzinfo=None)
+
+
+def utc_to_ist_wall(dt: datetime) -> datetime:
+    """Naive UTC coordinate -> local wall-clock (form prefill boundary)."""
+    return dt.replace(tzinfo=UTC).astimezone(local_zone()).replace(tzinfo=None)
+
+
+def ist_day_bounds_utc(day: date) -> tuple[datetime, datetime]:
+    """A local calendar day [00:00, next 00:00) as naive UTC range endpoints."""
+    zone = local_zone()
+    lo = datetime.combine(day, time.min, tzinfo=zone).astimezone(UTC).replace(tzinfo=None)
+    hi = (
+        datetime.combine(day + timedelta(days=1), time.min, tzinfo=zone)
+        .astimezone(UTC)
+        .replace(tzinfo=None)
+    )
+    return lo, hi
+
+
+def ist_format(dt_naive_utc: datetime) -> str:
+    """Render stored naive UTC as a local display string with explicit zone."""
+    aware = dt_naive_utc.replace(tzinfo=UTC).astimezone(local_zone())
+    return f"{aware:%d %b %Y, %I:%M %p} {aware:%Z}"
 
 
 def safe_next(target: str | None) -> str:
@@ -39,12 +74,24 @@ def get_own_or_404(model: type[db.Model], obj_id: int) -> db.Model:
     return obj
 
 
-def log_action(user_id: int, activity_type: str, title: str, details: str | None = None) -> None:
+def log_action(
+    user_id: int,
+    activity_type: str,
+    title: str,
+    details: str | None = None,
+    event_id: int | None = None,
+) -> None:
     """Queue an ActivityLog row (ADR-015 shape) on the current transaction; caller commits.
 
     Same-transaction rule (B08 pitfall #8): an audit row must live or die with
     the mutation it describes. Verbs come from the B08 VOCAB set.
     """
     db.session.add(
-        ActivityLog(user_id=user_id, activity_type=activity_type, title=title, details=details)
+        ActivityLog(
+            user_id=user_id,
+            activity_type=activity_type,
+            title=title[:120],
+            details=details,
+            event_id=event_id,
+        )
     )
