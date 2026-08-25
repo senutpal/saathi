@@ -31,11 +31,12 @@ def _configure_storage(app: Flask) -> None:
 
 
 def register_blueprints(app: Flask) -> None:
-    from .blueprints import auth, main, profile
+    from .blueprints import auth, events, main, profile
 
     app.register_blueprint(main.bp)
     app.register_blueprint(auth.bp)
     app.register_blueprint(profile.bp)
+    app.register_blueprint(events.bp)
 
 
 def register_error_handlers(app: Flask) -> None:
