@@ -380,4 +380,4 @@ def test_gallery_orders_newest_first_and_shows_quota(logged_in_client):
 
     assert page.status_code == 200
     assert html.index("newer.txt") < html.index("older-one.png")
-    assert "MB used" in html
+    assert "of 50.0 MiB used" in html
