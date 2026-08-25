@@ -53,15 +53,23 @@ class UploadRejected(Exception):
         self.msg = msg
 
 
+def _user_root(user_id: int) -> Path:
+    return Path(current_app.config["UPLOAD_FOLDER"]) / str(user_id)
+
+
 def user_dir(user_id: int) -> Path:
-    root = Path(current_app.config["UPLOAD_FOLDER"]) / str(user_id)
+    root = _user_root(user_id)
     (root / "thumbs").mkdir(parents=True, exist_ok=True)
     return root
 
 
+def stored_path(user_id: int, stored_filename: str) -> Path:
+    return _user_root(user_id) / stored_filename
+
+
 def thumb_path(user_id: int, stored_filename: str) -> Path:
     stem = stored_filename.rsplit(".", 1)[0]
-    return user_dir(user_id) / "thumbs" / f"{stem}{THUMB_SUFFIX}"
+    return _user_root(user_id) / "thumbs" / f"{stem}{THUMB_SUFFIX}"
 
 
 def quota_used_bytes(user_id: int) -> int:
@@ -86,7 +94,7 @@ def sniff_ext(data: bytes, declared_ext: str) -> tuple[str, bool]:
             head.decode("utf-8")
         except UnicodeDecodeError as exc:
             raise UploadRejected("Text file is not valid UTF-8.") from exc
-        if "\x00" in head:
+        if b"\x00" in head:
             raise UploadRejected("Binary content in a text file.")
         return ("text/csv" if declared_ext == "csv" else "text/plain"), False
     family = FAMILY_OK.get(declared_ext, set())
@@ -121,6 +129,9 @@ def save_upload(fs: FileStorage, user: User) -> Upload:
     if ext not in ALLOWED_EXTS:
         raise UploadRejected(f"Extension .{ext or '(none)'} is not allowed.")
     data = fs.read()
+    # werkzeug spools big bodies to a temp file it may not close itself;
+    # leaving it open surfaces as an unraisable ResourceWarning on Windows
+    fs.stream.close()
     if len(data) > current_app.config["MAX_CONTENT_LENGTH"]:
         raise UploadRejected("File exceeds the 5 MB limit.")
     if not data:
@@ -137,9 +148,10 @@ def save_upload(fs: FileStorage, user: User) -> Upload:
         im.save(buf, REENCODE_FORMAT[ext])
         data = buf.getvalue()
 
+    user_dir(user.id)
     for _ in range(2):  # uuid4 collisions are ~impossible; regenerate once anyway
         stored = f"{uuid.uuid4().hex}.{ext}"
-        dest = user_dir(user.id) / stored
+        dest = stored_path(user.id, stored)
         dest.write_bytes(data)
         if im is not None:
             make_thumb(im, thumb_path(user.id, stored))
@@ -165,7 +177,7 @@ def save_upload(fs: FileStorage, user: User) -> Upload:
 
 def delete_upload(row: Upload) -> None:
     # files first, tolerated failure; a failed unlink must never strand a dead link
-    _unlink_retry(user_dir(row.user_id) / row.stored_filename)
+    _unlink_retry(stored_path(row.user_id, row.stored_filename))
     _unlink_retry(thumb_path(row.user_id, row.stored_filename))
     log_action(row.user_id, "file_deleted", row.original_filename[:120])
     db.session.delete(row)

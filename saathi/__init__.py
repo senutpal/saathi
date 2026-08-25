@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 
-from flask import Flask, flash, render_template
+from flask import Flask, flash, render_template, request
 from flask_limiter.errors import RateLimitExceeded
 
 from .config import BASE_DIR, MAP
@@ -47,8 +47,11 @@ def register_error_handlers(app: Flask) -> None:
         return render_template(f"errors/{code}.html"), code
 
     def too_large(_err):
-        # the CSRF token is already consumed on an oversize POST; flash survives
-        # via the session while the 413 status stays honest for tests/clients
+        # the aborted multipart parse leaves werkzeug's spooled temp file open
+        # (unraisable ResourceWarning on Windows); the CSRF token is already
+        # consumed, so flash survives via the session while the 413 status
+        # stays honest for tests/clients
+        request.close()
         flash("That file is larger than the 5 MB limit.", "error")
         return render(413)
 
