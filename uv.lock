@@ -1386,7 +1386,7 @@ requires-dist = [
     { name = "ddgs", specifier = ">=9.15,<10" },
     { name = "docxtpl", specifier = "==0.20.2" },
     { name = "email-validator", specifier = ">=2.3.0" },
-    { name = "filetype" },
+    { name = "filetype", specifier = "==1.2.0" },
     { name = "flask", specifier = "~=3.1" },
     { name = "flask-limiter", specifier = ">=4.1.1" },
     { name = "flask-login", specifier = "==0.6.3" },

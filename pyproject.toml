@@ -13,7 +13,7 @@ dependencies = [
     "markdown-it-py",
     "nh3",
     "pillow>=12.3,<13",
-    "filetype",
+    "filetype==1.2.0",
     "python-dotenv",
     "tzdata==2026.3",
     "waitress",
