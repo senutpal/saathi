@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Notes — Saathi{% endblock %}
+{% block header %}Notes{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h2 class="font-semibold tracking-tight">Notes</h2>
+    <p class="text-sm text-muted-foreground">{{ pg.total }} note{{ 's' if pg.total != 1 }}{% if tag %} tagged “{{ tag }}”{% endif %}{% if q %} matching “{{ q }}”{% endif %}.</p>
+  </div>
+  <div class="flex items-center gap-2">
+    <form action="{{ url_for('notes.index') }}" method="get" class="flex items-center gap-2" role="search">
+      {% if tag %}<input type="hidden" name="tag" value="{{ tag }}">{% endif %}
+      <input type="search" name="q" value="{{ q }}" placeholder="Search notes…" aria-label="Search notes"
+             class="flex h-9 w-44 rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <button type="submit"
+              class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Search</button>
+    </form>
+    <a href="{{ url_for('notes.new') }}"
+       class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">New note</a>
+  </div>
+</div>
+
+{% if pg.items %}
+<ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+  {% for note in pg.items %}
+  <li class="flex flex-col rounded-lg border border-border bg-card p-6">
+    <div class="flex items-start justify-between gap-2">
+      <h3 class="text-sm font-medium leading-snug">
+        <a href="{{ url_for('notes.view', note_id=note.id) }}" class="hover:underline">{{ note.title }}</a>
+      </h3>
+      {% if note.pinned %}
+      <svg class="mt-0.5 size-3.5 shrink-0 text-muted-foreground" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-label="Pinned" role="img">
+        <path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>
+      </svg>
+      {% endif %}
+    </div>
+    <p class="mt-2 line-clamp-3 text-sm text-muted-foreground">
+      {%- if q -%}
+      {{ note.content|excerpt|highlight(q) }}
+      {%- else -%}
+      {{ note.content|excerpt }}
+      {%- endif -%}
+    </p>
+    {% if note.tags %}
+    <div class="mt-3 flex flex-wrap gap-1.5">
+      {% for t in note.tags %}
+      <a href="{{ url_for('notes.index', tag=t.name) }}"
+         class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">{{ t.name }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div class="mt-auto flex items-center justify-between pt-4 text-xs text-muted-foreground">
+      <span class="tabular-nums">{{ note.updated_at|ist }}</span>
+      <a href="{{ url_for('notes.edit', note_id=note.id) }}" class="transition-colors hover:text-foreground">Edit</a>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+
+{% if pg.pages > 1 %}
+<nav class="mt-6 flex items-center justify-between" aria-label="Pagination">
+  {% if pg.has_prev %}
+  <a href="{{ url_for('notes.index', page=pg.prev_num, q=q or none, tag=tag or none) }}"
+     class="inline-flex h-9 items-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground">Previous</a>
+  {% else %}<span></span>{% endif %}
+  <span class="text-xs tabular-nums text-muted-foreground">Page {{ pg.page }} of {{ pg.pages }}</span>
+  {% if pg.has_next %}
+  <a href="{{ url_for('notes.index', page=pg.next_num, q=q or none, tag=tag or none) }}"
+     class="inline-flex h-9 items-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground">Next</a>
+  {% else %}<span></span>{% endif %}
+</nav>
+{% endif %}
+
+{% elif q or tag %}
+<div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+  <p class="text-sm font-medium">No notes match</p>
+  <p class="mt-1 text-sm text-muted-foreground">Try a different search term or clear the filters.</p>
+  <a href="{{ url_for('notes.index') }}"
+     class="mt-4 inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Clear filters</a>
+</div>
+{% else %}
+<div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+  <p class="text-sm font-medium">No notes yet</p>
+  <p class="mt-1 text-sm text-muted-foreground">Markdown notes with tags live here.</p>
+  <a href="{{ url_for('notes.new') }}"
+     class="mt-4 inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Write your first note</a>
+</div>
+{% endif %}
+{% endblock %}

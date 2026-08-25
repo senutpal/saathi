@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ note.title }} — Saathi{% endblock %}
+{% block header %}Note{% endblock %}
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/md-content.css') }}">
+{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-start justify-between gap-4">
+  <div class="min-w-0">
+    <a href="{{ url_for('notes.index') }}" class="text-xs text-muted-foreground transition-colors hover:text-foreground">&larr; All notes</a>
+    <h2 class="mt-1 font-semibold tracking-tight">{{ note.title }}</h2>
+    <p class="mt-1 text-xs tabular-nums text-muted-foreground">
+      Updated {{ note.updated_at|ist }}
+      {% if note.linked_event %} · linked to “{{ note.linked_event.title }}”{% endif %}
+    </p>
+  </div>
+  <div class="flex items-center gap-2">
+    <a href="{{ url_for('notes.edit', note_id=note.id) }}"
+       class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Edit</a>
+    <form action="{{ url_for('notes.delete', note_id=note.id) }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit"
+              class="inline-flex h-9 items-center justify-center rounded-md bg-destructive px-4 text-sm font-medium text-white transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Delete</button>
+    </form>
+  </div>
+</div>
+
+{% if note.tags %}
+<div class="mb-4 flex flex-wrap gap-1.5">
+  {% for t in note.tags %}
+  <a href="{{ url_for('notes.index', tag=t.name) }}"
+     class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">{{ t.name }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<article class="rounded-lg border border-border bg-card p-6">
+  <div class="md-content">{{ note.content|md }}</div>
+</article>
+{% endblock %}

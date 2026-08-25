@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "macros.html" import field, textarea %}
+{% block title %}{{ 'Edit note' if note else 'New note' }} — Saathi{% endblock %}
+{% block header %}{{ 'Edit note' if note else 'New note' }}{% endblock %}
+{% block head_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/md-content.css') }}">
+{% endblock %}
+{% block content %}
+<form method="post" class="mx-auto mt-2 w-full max-w-2xl space-y-4 rounded-lg border border-border bg-card p-6">
+  {{ form.hidden_tag() }}
+  {{ field(form.title, placeholder="Meeting minutes — sprint 12") }}
+  {{ textarea(form.body, rows=16, placeholder="Markdown supported: **bold**, lists, tables, `code`…") }}
+  {{ field(form.tags, placeholder="work, ideas, deep-work") }}
+  {{ field(form.event_id) }}
+  <div class="flex gap-2 border-t border-border pt-4">
+    <button type="submit" name="submit"
+            class="inline-flex h-9 flex-1 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Save note</button>
+    <button type="submit" name="preview"
+            class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Preview</button>
+    <a href="{{ url_for('notes.index') }}"
+       class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Cancel</a>
+  </div>
+</form>
+
+{% if preview_html is not none %}
+<section class="mx-auto mt-6 w-full max-w-2xl rounded-lg border border-border bg-card p-6" aria-label="Preview">
+  <h3 class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Preview</h3>
+  <div class="md-content mt-3">{{ preview_html }}</div>
+</section>
+{% endif %}
+{% endblock %}
