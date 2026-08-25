@@ -18,7 +18,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..extensions import db
-from .base import TimestampMixin
+from .base import TimestampMixin, utcnow
 
 if TYPE_CHECKING:
     from .identity import User
@@ -104,3 +104,29 @@ class ActivityLog(db.Model):
     occurred_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     user: Mapped[User] = relationship(back_populates="activities")
+
+
+class SearchCache(db.Model):
+    """Upstream web-search payload keyed by normalized-query hash (P09).
+
+    source is persisted with the payload so a cache hit can still show
+    honest provenance ("Cached · Web") without re-deriving it.
+    """
+
+    __tablename__ = "search_cache"
+
+    query_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    query_text: Mapped[str] = mapped_column(String(200))
+    source: Mapped[str] = mapped_column(String(20))
+    payload_json: Mapped[str] = mapped_column(Text)
+    fetched_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class WeatherCache(db.Model):
+    """Open-Meteo current-weather payload keyed by lowercase city name."""
+
+    __tablename__ = "weather_cache"
+
+    city_key: Mapped[str] = mapped_column(String(120), primary_key=True)
+    payload_json: Mapped[str] = mapped_column(Text)
+    fetched_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
