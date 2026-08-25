@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}History — Saathi{% endblock %}
+{% block header %}History{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <div>
+    <h2 class="font-semibold tracking-tight">History</h2>
+    <p class="text-sm text-muted-foreground">{{ pg.total }} entr{{ 'y' if pg.total == 1 else 'ies' }} on record{% if prefix %} for this filter{% endif %}.</p>
+  </div>
+  <div class="flex items-center gap-2">
+    <form action="{{ url_for('history.page') }}" method="get" role="search">
+      <select name="type" aria-label="Filter by activity type" onchange="this.form.submit()"
+              class="flex h-9 rounded-md border border-input bg-card px-3 text-sm shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        {% for value, label in families %}
+        <option value="{{ value }}" {{ 'selected' if value == prefix }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <noscript><button type="submit" class="ml-2 inline-flex h-9 items-center rounded-md border border-border bg-card px-3 text-sm">Go</button></noscript>
+    </form>
+    <a href="{{ url_for('history.export_csv', type=prefix or none) }}"
+       class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Export CSV</a>
+  </div>
+</div>
+
+{% if pg.items %}
+<div class="space-y-8">
+  {% for label, entries in groups %}
+  <section aria-label="{{ label }}">
+    <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ label }}</h3>
+    <ul class="space-y-2">
+      {% for row, day_iso in entries %}
+      {% set t = row.activity_type %}
+      {% if t.startswith('event_') %}
+        {% set icon = 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z' %}
+      {% elif t.startswith('note_') %}
+        {% set icon = 'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7ZM14 2v5h6M9 13h6M9 17h4' %}
+      {% elif t.startswith('file_') %}
+        {% set icon = 'M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48' %}
+      {% elif t.startswith('web_search_') %}
+        {% set icon = 'M11 3a8 8 0 1 0 0 16 8 8 0 0 0 0-16ZM21 21l-4.35-4.35' %}
+      {% elif t.startswith('notifications_') %}
+        {% set icon = 'M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3' %}
+      {% elif t == 'cv_export' %}
+        {% set icon = 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3' %}
+      {% elif t == 'profile_updated' or t == 'signup' %}
+        {% set icon = 'M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z' %}
+      {% elif t.startswith('login') or t == 'logout' %}
+        {% set icon = 'M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3' %}
+      {% else %}
+        {% set icon = 'M22 12h-4l-3 9L9 3l-3 9H2' %}
+      {% endif %}
+      <li class="flex items-start gap-3 rounded-lg border border-border bg-card p-4">
+        <svg class="mt-0.5 size-4 shrink-0 text-muted-foreground" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="{{ icon }}"/>
+        </svg>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-medium leading-snug">{{ row.title }}</p>
+          {% if row.details %}<p class="mt-0.5 truncate text-xs text-muted-foreground">{{ row.details }}</p>{% endif %}
+        </div>
+        <div class="shrink-0 text-right">
+          <span class="block text-xs tabular-nums text-muted-foreground">{{ row.occurred_at | ist }}</span>
+          {% if row.event_id %}
+          <a href="{{ url_for('events.day', date=day_iso) }}" class="text-xs transition-colors hover:text-foreground">View day</a>
+          {% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endfor %}
+</div>
+
+{% if pg.pages > 1 %}
+<nav class="mt-6 flex items-center justify-between" aria-label="Pagination">
+  {% if pg.has_prev %}
+  <a href="{{ url_for('history.page', page=pg.prev_num, type=prefix or none) }}"
+     class="inline-flex h-9 items-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground">Previous</a>
+  {% else %}<span></span>{% endif %}
+  <span class="text-xs tabular-nums text-muted-foreground">Page {{ pg.page }} of {{ pg.pages }}</span>
+  {% if pg.has_next %}
+  <a href="{{ url_for('history.page', page=pg.next_num, type=prefix or none) }}"
+     class="inline-flex h-9 items-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground">Next</a>
+  {% else %}<span></span>{% endif %}
+</nav>
+{% endif %}
+
+{% elif prefix %}
+<div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+  <p class="text-sm font-medium">No activity for this filter</p>
+  <p class="mt-1 text-sm text-muted-foreground">Try another activity type or view everything.</p>
+  <a href="{{ url_for('history.page') }}"
+     class="mt-4 inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Show all activity</a>
+</div>
+{% else %}
+<div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+  <p class="text-sm font-medium">Nothing here yet</p>
+  <p class="mt-1 text-sm text-muted-foreground">Everything Saathi does for you lands here as it happens.</p>
+</div>
+{% endif %}
+{% endblock %}

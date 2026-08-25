@@ -31,7 +31,17 @@ def _configure_storage(app: Flask) -> None:
 
 
 def register_blueprints(app: Flask) -> None:
-    from .blueprints import auth, events, files, main, notes, notifications, profile, search
+    from .blueprints import (
+        auth,
+        events,
+        files,
+        history,
+        main,
+        notes,
+        notifications,
+        profile,
+        search,
+    )
 
     app.register_blueprint(main.bp)
     app.register_blueprint(auth.bp)
@@ -41,6 +51,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(notes.bp)
     app.register_blueprint(files.bp)
     app.register_blueprint(search.bp)
+    app.register_blueprint(history.bp)
 
 
 def register_error_handlers(app: Flask) -> None:
