@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td align="center" style="padding:24px 12px">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0"
+             style="max-width:600px;width:100%;background:#ffffff;border-radius:8px;padding:24px">
+        <tr>
+          <td style="padding-bottom:8px">
+            <h2 style="margin:0;color:#18181b;font-size:20px">Your week ahead</h2>
+            <p style="margin:2px 0 0;color:#71717a;font-size:13px">{{ range_label }}</p>
+          </td>
+        </tr>
+        {% if overdue %}
+        <tr>
+          <td style="padding-top:10px;color:#dc2626;font-size:14px">
+            {{ overdue }} reminder{{ 's' if overdue != 1 }} past due — review them in Saathi.
+          </td>
+        </tr>
+        {% endif %}
+        {% for event in events %}
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #e4e4e7;font-size:14px">
+            <span style="color:#18181b;font-weight:bold">{{ event.event_at | ist }}</span><br>
+            <span style="color:#3f3f46">{{ event.title }}</span>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td style="padding:12px 0;color:#71717a;font-size:14px">Nothing scheduled — enjoy the calm.</td>
+        </tr>
+        {% endfor %}
+        {% if birthdays %}
+        <tr>
+          <td style="padding-top:14px;font-size:14px;color:#18181b">
+            Birthdays this week:
+            {% for contact, anniv, turning in birthdays %}
+              {{ contact.name }} ({{ anniv.strftime('%d %b') }}, turns {{ turning }}){{ ', ' if not loop.last }}
+            {% endfor %}
+          </td>
+        </tr>
+        {% endif %}
+        {% if streaks %}
+        <tr>
+          <td style="padding-top:10px;font-size:13px;color:#3f3f46">
+            Habit streaks:
+            {% for name, current in streaks %}{{ name }} — {{ current }} day{{ 's' if current != 1 }}&nbsp;&nbsp;{% endfor %}
+          </td>
+        </tr>
+        {% endif %}
+        <tr>
+          <td style="padding-top:18px;border-top:1px solid #e4e4e7;color:#a1a1aa;font-size:12px">
+            You receive this because weekly digest is on in your Saathi settings.
+            Turn it off any time on the Settings page.
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

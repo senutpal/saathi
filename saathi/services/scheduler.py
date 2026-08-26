@@ -24,7 +24,7 @@ from ..extensions import db
 from ..models import ActivityLog, Event, Notification
 from ..models.base import utcnow
 from ..utils import ist_format
-from .daily import maybe_sync_birthday_events
+from .daily import maybe_daily_chores, maybe_sync_birthday_events
 from .mailer import enqueue_email
 
 log = logging.getLogger("saathi.ticker")
@@ -168,6 +168,10 @@ def _loop(app: Flask, interval: float, now_fn: Callable[[], datetime]) -> None:
             # Fresh context per scan: teardown rolls back any half-done state.
             with app.app_context():
                 fired = scan_and_fire(now_fn=now_fn)
+                try:
+                    maybe_daily_chores(now_fn=now_fn)
+                except Exception:  # noqa: BLE001 — a chore must never kill the tick
+                    log.exception("daily chores failed")
             if fired:
                 log.info("tick fired=%d", fired)
         except Exception:  # noqa: BLE001 — a failed scan must never kill the thread

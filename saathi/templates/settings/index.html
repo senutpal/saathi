@@ -32,4 +32,26 @@
     </ul>
   </div>
 </section>
+
+<section class="rounded-lg border border-border bg-card p-6" aria-label="Weekly digest">
+  <div class="flex items-center justify-between gap-3">
+    <h3 class="text-sm font-medium">Weekly digest email</h3>
+    <span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium {{ 'text-foreground' if current_user.digest_enabled else 'text-muted-foreground' }}">
+      {{ 'On' if current_user.digest_enabled else 'Off' }}
+    </span>
+  </div>
+  <p class="mt-2 text-sm text-muted-foreground">
+    Every Monday morning, get your next seven days of reminders, overdue count,
+    birthdays and habit streaks in one email.
+    <a href="{{ url_for('settings.digest_preview') }}" target="_blank" rel="noopener"
+       class="underline underline-offset-2 hover:text-foreground">Preview this week's email</a>.
+  </p>
+  <form action="{{ url_for('settings.digest_toggle') }}" method="post" class="mt-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit"
+            class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      {{ 'Turn off digest' if current_user.digest_enabled else 'Turn on digest' }}
+    </button>
+  </form>
+</section>
 {% endblock %}
