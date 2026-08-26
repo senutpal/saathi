@@ -6,7 +6,7 @@
   @bottom-right { content: counter(page) " / " counter(pages); }
 }
 
-body {
+.cv {
   font-family: Georgia, "Times New Roman", "Noto Serif", serif;
   font-size: 11pt;
   color: #111;

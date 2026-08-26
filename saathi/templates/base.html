@@ -60,7 +60,7 @@
     ('/settings', 'Settings')
   ] %}
   <aside class="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border bg-sidebar md:flex">
-    <div class="flex h-14 items-center px-4 text-sm font-semibold tracking-tight">Saathi</div>
+    <div class="flex h-14 items-center pl-6 text-lg font-bold tracking-tight">Saathi</div>
     <nav class="flex-1 space-y-1 px-3 py-2" aria-label="Main">
       {% for href, label in nav %}
       {% set is_active = (href == '/' and request.endpoint == 'main.index') or request.path == href %}
@@ -69,7 +69,6 @@
         {{ label }}</a>
       {% endfor %}
     </nav>
-    <div class="border-t border-border p-3"><span class="px-3 text-xs text-muted-foreground">v{{ config.get('VERSION', '0.1.0') }}</span></div>
   </aside>
 
   <div class="flex min-w-0 flex-1 flex-col md:pl-60">
@@ -128,10 +127,6 @@
     <main id="main" class="mx-auto w-full max-w-6xl flex-1 p-6 lg:p-8">
       {% block content %}{% endblock %}
     </main>
-
-    <footer class="border-t border-border px-6 py-3 text-xs text-muted-foreground no-print">
-      Saathi — personal assistant dashboard · {{ config.get('SAATHI_ENV', 'development') }}
-    </footer>
   </div>
 </div>
 
