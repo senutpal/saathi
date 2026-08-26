@@ -9,8 +9,9 @@ from __future__ import annotations
 
 import secrets
 from collections.abc import Callable
-from datetime import timezone
-UTC = timezone.utc, datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+UTC = timezone.utc
 
 from icalendar import Alarm, Calendar
 from icalendar import Event as IcalEvent

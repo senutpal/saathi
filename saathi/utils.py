@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import re
-from datetime import timezone
-UTC = timezone.utc, date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
+
+UTC = timezone.utc
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
