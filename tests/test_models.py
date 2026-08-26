@@ -9,6 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from saathi.extensions import db
 from saathi.models import (
     ActivityLog,
+    CapsuleMessage,
     EducationEntry,
     Event,
     Note,
@@ -224,9 +225,10 @@ def test_seed_demo_credentials_and_due_reminder(app) -> None:
 
         assert demo.check_password("demo1234") is True
         assert demo.profile.full_name == "Demo Saathi"
-        assert count_of(db.session, Event) == 3
+        assert count_of(db.session, Event) == 4
         assert count_of(db.session, Note) == 2
         assert count_of(db.session, Tag) >= 2
+        assert count_of(db.session, CapsuleMessage) == 1
         assert count_of(db.session, EducationEntry) == 1
         assert count_of(db.session, WorkEntry) == 1
         assert count_of(db.session, ActivityLog) >= 1

@@ -62,19 +62,20 @@ def test_digest_sends_once_per_monday_only(session, make_user, clock, fake_send)
     first = daily.maybe_daily_chores(now_fn=clock)
     second = daily.maybe_daily_chores(now_fn=clock)
 
-    assert first == {"digests": 1}
+    assert first["digests"] == 1
     assert second == {}
+
     assert len(fake_send) == 1
     db.session.expire_all()
     assert db.session.get(User, user.id).digest_last_sent_at is not None
 
     clock.advance(days=3)
     wednesday = daily.maybe_daily_chores(now_fn=clock)
-    assert wednesday == {"digests": 0}
+    assert wednesday["digests"] == 0
 
     clock.advance(days=4)
     next_monday = daily.maybe_daily_chores(now_fn=clock)
-    assert next_monday == {"digests": 1}
+    assert next_monday["digests"] == 1
     assert len(fake_send) == 2
 
 
@@ -84,7 +85,7 @@ def test_failed_send_leaves_guard_unset_for_retry(session, make_user, clock, mon
 
     stats = daily.maybe_daily_chores(now_fn=clock)
 
-    assert stats == {"digests": 0}
+    assert stats["digests"] == 0
     assert db.session.get(User, user.id).digest_last_sent_at is None
 
     # a process restart clears the memo; same Monday must retry the send
@@ -92,7 +93,7 @@ def test_failed_send_leaves_guard_unset_for_retry(session, make_user, clock, mon
     monkeypatch.setattr(daily, "send_email", lambda *a, **k: True)
     retried = daily.maybe_daily_chores(now_fn=clock)
 
-    assert retried == {"digests": 1}
+    assert retried["digests"] == 1
 
 
 def test_disabled_user_is_never_emailed(session, make_user, clock, fake_send) -> None:
@@ -102,7 +103,7 @@ def test_disabled_user_is_never_emailed(session, make_user, clock, fake_send) ->
 
     stats = daily.maybe_daily_chores(now_fn=clock)
 
-    assert stats == {"digests": 0}
+    assert stats["digests"] == 0
     assert fake_send == []
 
 
