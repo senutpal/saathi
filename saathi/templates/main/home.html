@@ -155,11 +155,15 @@
       ('Profile', 'Personal data, education and work history.', '/profile', true),
       ('CV', 'Themed résumé preview with PDF and DOCX export.', '/profile/cv', true),
       ('Events', 'Reminders with repeat rules.', '/events', true),
-      ('Calendar', 'Month view of everything scheduled.', '/calendar', false),
+      ('Contacts', 'People and their birthdays.', '/contacts', true),
+      ('Habits', 'Daily toggles with streaks.', '/habits', true),
+      ('Mood', 'One score a day, trends for free.', '/mood', true),
+      ('Expenses', 'A paise-exact spending ledger.', '/expenses', true),
       ('Notes', 'Markdown notes with tags.', '/notes', true),
       ('Files', 'Your private gallery.', '/files', true),
       ('Search', 'Keyless web search.', '/search', true),
-      ('History', 'Everything Saathi did for you.', '/history', true)
+      ('History', 'Everything Saathi did for you.', '/history', true),
+      ('Backup', 'Download or restore your data.', '/backup', true)
     ] %}
     {% for title, description, href, live in modules %}
     <a href="{{ href if live else '#'}}"
