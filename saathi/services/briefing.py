@@ -21,6 +21,7 @@ from ..models import ActivityLog, Event, Note, Notification
 from ..models.base import utcnow
 from ..utils import utc_to_ist_wall
 from .agenda import day_events
+from .daily import upcoming_birthdays as _fetch_upcoming_birthdays
 from .search import get_weather
 
 log = logging.getLogger(__name__)
@@ -75,11 +76,11 @@ def _recent_notes(user_id: int, limit: int = 3) -> list[Note]:
 
 
 def _upcoming_birthdays(user_id: int, today: date) -> list[Any]:
-    """P11's contacts table feeds this; until that model exists there is no
-    card and — importantly — no query at all."""
+    """Real P11 contacts query; the absent-table guard keeps zero-query cost
+    for any DB created before the contacts table existed."""
     if "contacts" not in db.metadata.tables:
         return []
-    return []
+    return list(_fetch_upcoming_birthdays(user_id, today))
 
 
 def _weather() -> dict | None:

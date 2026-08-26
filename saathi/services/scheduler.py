@@ -24,6 +24,7 @@ from ..extensions import db
 from ..models import ActivityLog, Event, Notification
 from ..models.base import utcnow
 from ..utils import ist_format
+from .daily import maybe_sync_birthday_events
 from .mailer import enqueue_email
 
 log = logging.getLogger("saathi.ticker")
@@ -94,6 +95,10 @@ def scan_and_fire(*, now_fn: Callable[[], datetime] = utcnow, limit: int = 50) -
             enqueue_email(current_app._get_current_object(), emailed_ids)
         except Exception:  # noqa: BLE001 — never break the tick over email
             log.exception("email enqueue failed")
+    try:
+        maybe_sync_birthday_events()
+    except Exception:  # noqa: BLE001 — maintenance must never break event claiming
+        log.exception("birthday sync failed")
     return fired
 
 

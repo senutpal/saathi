@@ -12,6 +12,7 @@ from flask_login import current_user
 
 from .extensions import db
 from .models import ActivityLog
+from .models.base import utcnow
 
 PHONE_CHARS = re.compile(r"[0-9+()\-\s.]")
 
@@ -47,6 +48,11 @@ def ist_format(dt_naive_utc: datetime) -> str:
     """Render stored naive UTC as a local display string with explicit zone."""
     aware = dt_naive_utc.replace(tzinfo=UTC).astimezone(local_zone())
     return f"{aware:%d %b %Y, %I:%M %p} {aware:%Z}"
+
+
+def ist_today() -> date:
+    """The local calendar date for 'today' — never date.today() (machine TZ)."""
+    return utc_to_ist_wall(utcnow()).date()
 
 
 def safe_next(target: str | None) -> str:

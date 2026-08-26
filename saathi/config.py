@@ -35,6 +35,11 @@ class Config:
     }
     TIMEZONE = os.environ.get("TZ", "Asia/Kolkata")
     WEATHER_CITY = os.environ.get("WEATHER_CITY", "")
+    BIRTHDAYS_AS_EVENTS = os.environ.get("BIRTHDAYS_AS_EVENTS", "").lower() in {
+        "1",
+        "true",
+        "yes",
+    }
     SAATHI_ENV = os.environ.get("FLASK_ENV", "development")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SESSION_COOKIE_HTTPONLY = True
@@ -62,6 +67,7 @@ class TestingConfig(Config):
     # pin a locally-set WEATHER_CITY leaks live network calls into every test
     # that renders the dashboard (and breaks the query budget).
     WEATHER_CITY = ""
+    BIRTHDAYS_AS_EVENTS = False
 
 
 MAP = {
