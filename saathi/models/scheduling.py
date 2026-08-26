@@ -76,3 +76,21 @@ class Notification(TimestampMixin, db.Model):
 
     user: Mapped[User] = relationship(back_populates="notifications")
     event: Mapped[Event | None] = relationship(back_populates="notifications")
+
+
+class CapsuleMessage(TimestampMixin, db.Model):
+    """A letter to future you; body stays server-side until open_at passes."""
+
+    __tablename__ = "capsule_messages"
+    __table_args__ = (
+        CheckConstraint("status IN ('sealed','opened')", name="ck_capsules_status"),
+        Index("ix_capsules_user_status", "user_id", "status"),
+        Index("ix_capsules_sealed_due", "open_at", sqlite_where=text("status = 'sealed'")),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    title: Mapped[str] = mapped_column(String(120))
+    body: Mapped[str] = mapped_column(Text)
+    open_at: Mapped[datetime] = mapped_column(DateTime)  # naive UTC
+    status: Mapped[str] = mapped_column(String(10), default="sealed")

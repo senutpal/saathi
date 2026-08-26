@@ -27,6 +27,7 @@ FILTER_FAMILIES: list[tuple[str, str]] = [
     ("", "All activity"),
     ("event_", "Reminders"),
     ("note_", "Notes"),
+    ("capsule_", "Time capsule"),
     ("file_", "Files"),
     ("web_search_", "Web search"),
     ("notifications_", "Notifications"),

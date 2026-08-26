@@ -35,6 +35,7 @@ def register_blueprints(app: Flask) -> None:
         auth,
         backup,
         calendar,
+        capsules,
         contacts,
         events,
         expenses,
@@ -58,6 +59,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(calendar.bp)
     app.register_blueprint(notifications.bp)
     app.register_blueprint(notes.bp)
+    app.register_blueprint(capsules.bp)
     app.register_blueprint(files.bp)
     app.register_blueprint(search.bp)
     app.register_blueprint(history.bp)

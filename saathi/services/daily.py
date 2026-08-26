@@ -15,7 +15,7 @@ from flask import current_app, render_template
 from sqlalchemy import func, select
 
 from ..extensions import db
-from ..models import Contact, Event, Habit, HabitLog, Mood, User
+from ..models import CapsuleMessage, Contact, Event, Habit, HabitLog, Mood, Notification, User
 from ..models.base import utcnow
 from ..utils import ist_day_bounds_utc, ist_to_utc_naive, ist_today, utc_to_ist_wall
 from .mailer import send_email
@@ -288,6 +288,36 @@ def send_digest(user: User, *, now_fn: Callable[[], datetime] = utcnow) -> int:
     return int(ok)
 
 
+def open_due_capsules(*, now_fn: Callable[[], datetime] = utcnow) -> int:
+    """Flip sealed->opened past open_at; one notification per newly opened.
+
+    The status filter makes reruns no-ops, so the per-process chore memo can
+    reset freely (B15 pitfall 7). Reveal granularity is daily by design.
+    """
+    due = list(
+        db.session.scalars(
+            select(CapsuleMessage).where(
+                CapsuleMessage.status == "sealed",
+                CapsuleMessage.open_at <= now_fn(),
+            )
+        )
+    )
+    for capsule in due:
+        capsule.status = "opened"
+        sealed_on = f"{capsule.created_at:%d %b %Y}"
+        db.session.add(
+            Notification(
+                user_id=capsule.user_id,
+                event_id=None,
+                title="A message from your past self",
+                body=f"You sealed '{capsule.title[:100]}' on {sealed_on}. It's ready.",
+            )
+        )
+    if due:
+        db.session.commit()
+    return len(due)
+
+
 def maybe_daily_chores(*, now_fn: Callable[[], datetime] = utcnow) -> dict:
     """At-most-once-per-process-day maintenance riding the ticker loop.
 
@@ -300,4 +330,7 @@ def maybe_daily_chores(*, now_fn: Callable[[], datetime] = utcnow) -> dict:
         return {}
     _last_chore_day = day
     users = db.session.scalars(select(User).where(User.digest_enabled.is_(True))).all()
-    return {"digests": sum(send_digest(user, now_fn=now_fn) for user in users)}
+    return {
+        "digests": sum(send_digest(user, now_fn=now_fn) for user in users),
+        "capsules_opened": open_due_capsules(now_fn=now_fn),
+    }

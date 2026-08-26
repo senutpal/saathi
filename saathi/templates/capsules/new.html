@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}New capsule - Saathi{% endblock %}
+{% block header %}New capsule{% endblock %}
+{% block content %}
+<h2 class="mb-6 font-semibold tracking-tight">Write to future you</h2>
+
+<form method="post" class="max-w-xl space-y-4 rounded-lg border border-border bg-card p-6">
+  {{ form.hidden_tag() }}
+  <div>
+    {{ form.title.label(class="mb-1 block text-sm font-medium") }}
+    {{ form.title(class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", placeholder="Read me on your graduation") }}
+    {% for error in form.title.errors %}<p class="mt-1 text-xs text-destructive">{{ error }}</p>{% endfor %}
+  </div>
+  <div>
+    {{ form.body.label(class="mb-1 block text-sm font-medium") }}
+    {{ form.body(rows=10, class="flex w-full rounded-md border border-input bg-card px-3 py-2 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", placeholder="Dear future me,") }}
+    {% for error in form.body.errors %}<p class="mt-1 text-xs text-destructive">{{ error }}</p>{% endfor %}
+  </div>
+  <div>
+    {{ form.open_at.label(class="mb-1 block text-sm font-medium") }}
+    {{ form.open_at(class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+    <p class="mt-1 text-xs text-muted-foreground">The body stays sealed until this moment passes.</p>
+    {% for error in form.open_at.errors %}<p class="mt-1 text-xs text-destructive">{{ error }}</p>{% endfor %}
+  </div>
+  {{ form.submit(class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+</form>
+{% endblock %}
