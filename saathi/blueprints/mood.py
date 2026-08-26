@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import calendar
-from datetime import date, timedelta
+from datetime import timedelta
 
 from flask import (
     Blueprint,
-    abort,
     flash,
     redirect,
     render_template,
@@ -23,7 +21,7 @@ from wtforms.validators import DataRequired, Length, Optional
 
 from ..extensions import db
 from ..models import Mood
-from ..utils import ist_today, log_action
+from ..utils import ist_today, log_action, month_bounds
 
 bp = Blueprint("mood", __name__, url_prefix="/mood")
 
@@ -45,24 +43,9 @@ class MoodForm(FlaskForm):
     note = TextAreaField("Note", validators=[Optional(), Length(max=2000)])
 
 
-def _parse_month(raw: str | None) -> tuple[date, date]:
-    """[first_day, next_first_day) bounds; bad input falls back to current month."""
-    today = ist_today()
-    if raw:
-        try:
-            year, month = map(int, raw.split("-"))
-            first = date(year, month, 1)
-        except (ValueError, TypeError):
-            abort(404)
-    else:
-        first = today.replace(day=1)
-    last = first.replace(day=calendar.monthrange(first.year, first.month)[1])
-    return first, last + timedelta(days=1)
-
-
 @bp.get("")
 def index() -> str:
-    first, after = _parse_month(request.args.get("month"))
+    first, after = month_bounds(request.args.get("month"))
     form = MoodForm()
     form.mood_date.data = form.mood_date.data or ist_today()
     entries = list(

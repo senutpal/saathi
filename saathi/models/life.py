@@ -75,3 +75,21 @@ class Mood(db.Model):
     mood_date: Mapped[date] = mapped_column(Date)
     score: Mapped[int] = mapped_column()
     note: Mapped[str | None] = mapped_column(Text)
+
+
+class Expense(TimestampMixin, db.Model):
+    """amount_cents is INTEGER paise — floats corrupt money (B17 §5)."""
+
+    __tablename__ = "expenses"
+    __table_args__ = (
+        CheckConstraint("amount_cents >= 0", name="ck_expenses_nonneg"),
+        Index("ix_expenses_user_date", "user_id", "spent_on"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    amount_cents: Mapped[int] = mapped_column()
+    currency: Mapped[str] = mapped_column(String(3), default="INR")
+    category: Mapped[str] = mapped_column(String(40))
+    spent_on: Mapped[date] = mapped_column(Date)
+    note: Mapped[str | None] = mapped_column(Text)

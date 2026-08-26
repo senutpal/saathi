@@ -35,6 +35,7 @@ def register_blueprints(app: Flask) -> None:
         auth,
         contacts,
         events,
+        expenses,
         files,
         habits,
         history,
@@ -58,6 +59,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(contacts.bp)
     app.register_blueprint(habits.bp)
     app.register_blueprint(mood.bp)
+    app.register_blueprint(expenses.bp)
 
 
 def register_error_handlers(app: Flask) -> None:
@@ -85,11 +87,13 @@ def register_template_helpers(app: Flask) -> None:
     from . import utils
     from .blueprints import notifications
     from .services.markdown import excerpt, highlight, render_md
+    from .services.money import format_cents
 
     app.jinja_env.filters["ist"] = utils.ist_format
     app.jinja_env.filters["md"] = render_md
     app.jinja_env.filters["excerpt"] = excerpt
     app.jinja_env.filters["highlight"] = highlight
+    app.jinja_env.filters["money"] = format_cents
     app.context_processor(notifications.bell_context)
 
 

@@ -55,6 +55,26 @@ def ist_today() -> date:
     return utc_to_ist_wall(utcnow()).date()
 
 
+def month_bounds(raw: str | None) -> tuple[date, date]:
+    """[first_day, day_after_last) bounds for 'YYYY-MM' or the current month.
+
+    Raises 404 on malformed input so bad ?month= links fail loudly.
+    """
+    import calendar
+
+    today = ist_today()
+    if raw:
+        try:
+            year_str, month_str = raw.split("-")
+            first = date(int(year_str), int(month_str), 1)
+        except ValueError:
+            abort(404)
+    else:
+        first = today.replace(day=1)
+    last = first.replace(day=calendar.monthrange(first.year, first.month)[1])
+    return first, last + timedelta(days=1)
+
+
 def safe_next(target: str | None) -> str:
     """Return target only if it is a site-relative path ('/x'), else ''.
 
