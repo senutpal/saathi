@@ -138,19 +138,19 @@ def test_greeting_tracks_local_time_of_day(session, make_user):
     assert briefing.build_briefing(user.id, now_fn=clock_at(ist(22)))["greeting"] == "Good evening"
 
 
-def test_placeholder_seams_flip_when_tables_appear(session, make_user):
+def test_seam_flags_true_once_pack_a_tables_landed(session, make_user):
+    """P10's metadata probes flip permanently once P11 models register.
+
+    (The pre-P11 variant simulated absence via db.Table injection; injecting
+    'habits' now collides with the real mapper, so the assertion direction
+    inverts — flags must be True from here on.)
+    """
     user = make_user()
 
-    before = briefing.build_briefing(user.id, now_fn=clock_at(ist(12)))
-    habits = db.Table("habits", db.metadata, db.Column("id", db.Integer, primary_key=True))
-    try:
-        after = briefing.build_briefing(user.id, now_fn=clock_at(ist(12)))
-    finally:
-        db.metadata.remove(habits)
+    data = briefing.build_briefing(user.id, now_fn=clock_at(ist(12)))
 
-    assert before["has_habits"] is False
-    assert after["has_habits"] is True
-    assert "habits" not in db.metadata.tables
+    assert data["has_habits"] is True
+    assert data["has_contacts"] is True
 
 
 def test_coming_soon_cards_hidden_while_tables_absent(logged_in_client):
