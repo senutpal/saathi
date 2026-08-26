@@ -28,12 +28,46 @@ Saathi is a Python-only, server-side rendered (SSR) web application providing pe
 - **TOTP**: Time-based One-Time Password (RFC 6238).
 - **ICS**: iCalendar format (RFC 5545).
 
-### 1.4 Overview
-The remainder of this document defines overall product perspectives, constraints, detailed functional requirements (FR-01 to FR-15), non-functional requirements (NFR-01 to NFR-08), and system interface specifications.
+### 1.4 Baseline Problem Statement & Feature Mapping
+
+The core specification for **Saathi ("Here I Am")** mandates a virtual personal assistant that captures user general information and helps maintain daily activities, schedules, and appointments across isolated user spaces.
+
+#### 1.4.1 Baseline Problem Guidelines Mapping
+- **Multi-User Registration & Isolated Spaces**: Mandatory registration, scrypt-hashed login, and per-user data isolation (`user_id` scoping).
+- **General Information Module**:
+  - *Personal Data*: Name, sex, date of birth, email ID, phone number, address, likes/dislikes, headline, summary.
+  - *Educational Background*: Institution, degree, field of study, start/end dates.
+  - *Professional Information*: Organization/company, role/designation, description, employment duration.
+  - *Documented Output*: Automated dynamic generation of personal details into downloadable **CVs (PDF & DOCX)**.
+- **Reminder & Schedule Engine**:
+  - *Input*: Date, time, title, and event details entry with future-time validation.
+  - *Output / Query*: Date-based search, IST day views, upcoming schedule lists, and background alert notifications.
+- **Advanced Guidelines Baseline**:
+  - *Web Search*: Integrated keyless web search.
+  - *File Repository*: Uploading and downloading files and pictures for future work.
+  - *Past Activity Records*: Timeline tracking of past meeting activities and historical audit logs.
+  - *Notes & Meeting Conversations*: Note-taking module to record meeting contents and save to persistent markdown storage.
+
+#### 1.4.2 Additional Features Added (Product Differentiators)
+Beyond the basic guidelines, Saathi introduces 9 major extensions:
+1. **RFC 6238 TOTP 2FA & Brute-Force Lockout**: QR code setup (`segno`), SHA-256 backup codes, and 5-attempt IP/email lockout.
+2. **Natural-Language Quick-Add Parser**: Smart date peeling (`dateparser`) with immediate session-driven Undo bar.
+3. **Sealed Time Capsules**: Future-locked messages stored encrypted until an explicit future datetime reveal.
+4. **RFC 5545 ICS Feed**: Live calendar subscription feed compatible with Google Calendar and Outlook.
+5. **Interactive Life Dashboard**:
+   - *Habit Heat Grid*: 60-cell completion grid with 7-day streak badges (`Habit` & `HabitLog`).
+   - *Mood Journal*: 5-point monthly mood tracker (`MoodEntry`).
+   - *Expense Tracker*: Financial expense ledger stored as integer cents with category summaries.
+   - *Contacts & Birthday Seam*: Birthday auto-sync to event schedule.
+6. **Weekly Email Digest**: Automated Monday morning email digest summarizing upcoming events and habits.
+7. **HTML Markdown Sanitization (`nh3`)**: Safe Markdown parsing with explicit tag/attribute allowlist and zero `|safe` Jinja bypasses.
+8. **Magic-Byte Upload Ladder**: `filetype` magic byte checking + Pillow image EXIF stripping and 50MB user quota.
+9. **Complete Portable Backup & Restore**: Full JSON export/import with FK remapping and share-token stripping.
 
 ---
 
 ## 2. Overall Description
+
 
 ### 2.1 Product Perspective
 Saathi operates as a self-contained, standalone web application. It runs via a Waitress WSGI server, backed by an embedded SQLite database (`saathi.db`), with optional outbound connections to SMTP servers and keyless external search/weather endpoints.

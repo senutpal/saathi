@@ -26,16 +26,49 @@ Personal productivity software has fragmented across proprietary single-purpose 
 
 ---
 
-## Chapter 2: Problem Statement
+## Chapter 2: Problem Statement & Feature Mapping
 
-Existing personal assistant applications present three critical drawbacks:
-1. **Siloed Data & Fragmentation**: Information cannot cross application boundaries (e.g., linking a markdown note directly to a scheduled calendar event or attaching uploaded files to resume generators).
-2. **Vendor Lock-in & Key Dependencies**: Most commercial tools require paid cloud subscriptions, mobile platform tie-ins, or API key management.
-3. **Security & Privacy Gaps**: Third-party tools aggregate sensitive user data, missing transparent local ownership or robust IDOR defenses.
+### 2.1 Problem Statement
+The fundamental concept of **"Here I Am" (Saathi)** is to build a virtual personal assistant web application that helps users maintain their daily life activities, appointments, schedules, and personal records within an isolated multi-user environment.
 
-Saathi eliminates these pain points through a single, self-hosted or cloud-deployed Python application.
+### 2.2 Baseline Problem Guidelines Mapping
+The system satisfies all core guidelines defined in the problem specification:
+1. **Multi-User Spaces & Authentication**: New users register with an isolated space; existing users log in with scrypt password security and session protection.
+2. **General Information & Profile Capture**:
+   - *Personal Data*: Captures name, sex, date of birth, email ID, phone number, address, headline, summary.
+   - *Education*: Educational background entries (institution, degree, field of study, start/end dates).
+   - *Professional Information*: Career history (company/organization, designation/role, description, dates).
+   - *Documented Output*: Automated dynamic generation of personal details into downloadable **CVs in PDF (WeasyPrint) and DOCX (`docxtpl`)** format.
+3. **Reminder & Schedule Engine**:
+   - *Input*: Date, time, title, and detailed description entry with future-time validation.
+   - *Output / Query*: Date-based searching, daily schedule views, upcoming events list, and background notification alerts.
+4. **Advanced Baseline Features**:
+   - *Web Search*: Integrated DuckDuckGo keyless web search.
+   - *File & Picture Uploads*: Uploading and downloading files and pictures for future work.
+   - *Past Activity Audit Log*: Timeline tracking of past meeting activities and system operations.
+   - *Meeting Notes*: Markdown note-taking module to capture conversation/meeting contents for future access.
 
 ---
+
+### 2.3 Additional Features Added (Product Enhancements)
+To make the application significantly more useful, secure, and interesting, Saathi incorporates 9 major value-add features beyond the initial guidelines:
+
+1. **RFC 6238 TOTP 2FA & Brute-Force Lockout**: 2-Factor Authentication via authenticator app (QR code data URI), SHA-256 backup codes, and 5-attempt sliding window IP/email lockout (`test_security.py`).
+2. **Natural-Language Quick-Add Parser**: Natural-language event parser (e.g. `"rem tomorrow at 6pm team meeting"`) with an instant 5-minute session Undo bar (`services/quickadd.py`).
+3. **Sealed Time Capsules**: Future-locked messages sealed on disk until an explicit future datetime reveal (`blueprints/capsules.py`).
+4. **RFC 5545 iCalendar (ICS) Feed**: Live bearer-token calendar subscription feed compatible with Google Calendar, Apple Calendar, and Outlook (`services/ics.py`).
+5. **Interactive Life Dashboard**:
+   - *Habit Heat Grid*: 60-cell completion grid with 7-day streak badges and flame indicators.
+   - *Mood Journal*: 5-point monthly mood tracker with journal notes.
+   - *Expense Ledger*: Financial expense tracking stored as integer cents with category pie/bar charts.
+   - *Contacts & Birthday Auto-Sync*: Birthday tracking with automatic schedule event generation.
+6. **Weekly Email Digest**: Automated Monday morning digest summarizing upcoming events and habits via daemon-threaded SMTP SSL.
+7. **HTML Markdown Sanitization (`nh3`)**: Safe Markdown parsing with explicit tag/attribute allowlist, zero `|safe` Jinja bypasses, and strikethrough support.
+8. **Magic-Byte Upload Ladder**: Multi-stage upload validation (`filetype` magic byte check + Pillow EXIF sanitization + 50MB quota cap).
+9. **Complete Portable Data Backup & Restore**: Full account JSON export and import with parent-first FK remapping and public token stripping.
+
+---
+
 
 ## Chapter 3: Objectives & Scope
 
