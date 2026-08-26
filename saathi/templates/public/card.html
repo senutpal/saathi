@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" class="{{ 'dark' if request.cookies.get('theme') == 'dark' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ profile.full_name }} — Saathi card</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @custom-variant dark (&:where(.dark, .dark *));
+    @theme inline {
+      --color-background: var(--background);
+      --color-foreground: var(--foreground);
+      --color-card: var(--card);
+      --color-muted: var(--muted);
+      --color-muted-foreground: var(--muted-foreground);
+      --color-border: var(--border);
+      --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-background font-sans text-foreground antialiased">
+<main class="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center p-6">
+  <article class="rounded-lg border border-border bg-card p-8">
+    <p class="text-xs font-medium uppercase tracking-widest text-muted-foreground">Saathi card</p>
+    <h1 class="mt-2 text-2xl font-semibold tracking-tight">{{ profile.full_name }}</h1>
+    {% if profile.headline %}
+    <p class="mt-1 text-sm text-muted-foreground">{{ profile.headline }}</p>
+    {% endif %}
+
+    {% if education %}
+    <section class="mt-6" aria-label="Education">
+      <h2 class="text-sm font-medium">Education</h2>
+      <ul class="mt-2 space-y-3">
+        {% for e in education %}
+        <li class="border-l border-border pl-3">
+          <p class="text-sm font-medium">{{ e.institution }}</p>
+          <p class="text-xs text-muted-foreground">
+            {{ e.qualification }}{% if e.field_of_study %} · {{ e.field_of_study }}{% endif %}
+          </p>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if work %}
+    <section class="mt-6" aria-label="Work">
+      <h2 class="text-sm font-medium">Work</h2>
+      <ul class="mt-2 space-y-3">
+        {% for w in work %}
+        <li class="border-l border-border pl-3">
+          <p class="text-sm font-medium">{{ w.organization }}</p>
+          <p class="text-xs text-muted-foreground">{{ w.role }}</p>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if profile.likes %}
+    <section class="mt-6" aria-label="Likes">
+      <h2 class="text-sm font-medium">Likes</h2>
+      <p class="mt-1 whitespace-pre-line text-sm text-muted-foreground">{{ profile.likes }}</p>
+    </section>
+    {% endif %}
+
+    {% if not (education or work or profile.likes) %}
+    <p class="mt-6 text-sm text-muted-foreground">This card is empty right now.</p>
+    {% endif %}
+  </article>
+  <p class="mt-4 text-center text-xs text-muted-foreground">Shared via Saathi — no contact details are exposed on public cards.</p>
+</main>
+</body>
+</html>

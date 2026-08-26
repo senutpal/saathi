@@ -1,0 +1,41 @@
+<section class="rounded-lg border border-border bg-card p-6" aria-label="Public share card">
+  <div class="flex items-center justify-between gap-3">
+    <h2 class="text-sm font-medium">Public share card</h2>
+    <span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium {{ 'text-foreground' if profile.share_enabled else 'text-muted-foreground' }}">
+      {{ 'Live' if profile.share_enabled else 'Off' }}
+    </span>
+  </div>
+
+  {% if profile.share_enabled and share_url %}
+  <p class="mt-2 text-sm text-muted-foreground">
+    Anyone with this link can see your name, education, work and likes — never
+    your contact details or birthday.
+  </p>
+  <div class="mt-4 flex flex-wrap items-center gap-4">
+    <img src="{{ qr_uri }}" alt="Scan to open {{ profile.full_name }}'s public card"
+         width="168" height="168"
+         class="rounded-md border border-border bg-white p-1 dark:bg-white">
+    <div class="min-w-0">
+      <code class="block max-w-full truncate rounded-md border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">{{ share_url }}</code>
+      <form action="{{ url_for('profile.share_regenerate') }}" method="post" class="mt-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit"
+                class="inline-flex h-8 items-center justify-center rounded-md border border-border bg-card px-3 text-xs font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Regenerate link</button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <p class="mt-2 text-sm text-muted-foreground">
+    Nothing about you is public until you turn this on. The card shows your
+    name, education, work history and likes only.
+  </p>
+  {% endif %}
+
+  <form action="{{ url_for('profile.share_toggle') }}" method="post" class="mt-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit"
+            class="inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring {{ 'border border-border bg-card hover:bg-accent hover:text-destructive' if profile.share_enabled else 'bg-primary text-primary-foreground hover:bg-primary/90' }}">
+      {{ 'Turn off sharing' if profile.share_enabled else 'Enable public card' }}
+    </button>
+  </form>
+</section>

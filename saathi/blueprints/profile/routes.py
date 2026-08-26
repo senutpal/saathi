@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import io
+import secrets
 from pathlib import Path
 from uuid import uuid4
 
+import segno
 from flask import (
     Response,
+    abort,
     current_app,
     flash,
     redirect,
@@ -15,6 +18,7 @@ from flask import (
     send_file,
     url_for,
 )
+from flask.typing import ResponseReturnValue
 from flask_login import current_user
 
 from ...extensions import db
@@ -56,12 +60,65 @@ def _flash_form_errors(form: EducationForm | WorkForm | ProfileForm) -> None:
 
 @bp.get("")
 def view() -> str:
+    profile = current_user.profile
+    share_url, qr_uri = _share_context(profile)
     return render_template(
         "profile/view.html",
-        profile=current_user.profile,
+        profile=profile,
         education_form=EducationForm(),
         work_form=WorkForm(),
+        share_url=share_url,
+        qr_uri=qr_uri,
     )
+
+
+def _share_context(profile: Profile | None) -> tuple[str | None, str | None]:
+    """(public URL, QR data-URI) when sharing is on; APP_URL wins over Host.
+
+    Behind proxies url_for(_external=True) reflects the request Host, so the
+    configured APP_URL (B17 pitfall P8) is preferred when present.
+    """
+    if profile is None or not profile.share_enabled or not profile.public_token:
+        return None, None
+    path = url_for("public.card", token=profile.public_token)
+    base = current_app.config.get("APP_URL", "").rstrip("/")
+    share_url = (
+        f"{base}{path}"
+        if base
+        else url_for("public.card", token=profile.public_token, _external=True)
+    )
+    # svg_data_uri keeps raw SVG out of the template — no |safe needed
+    qr_uri = segno.make(share_url).svg_data_uri(scale=6, border=2)
+    return share_url, qr_uri
+
+
+@bp.post("/share")
+def share_toggle() -> ResponseReturnValue:
+    prof = _current_profile()
+    if prof.share_enabled:
+        prof.share_enabled = False
+        detail = "Public card disabled"
+    else:
+        prof.share_enabled = True
+        if not prof.public_token:
+            prof.public_token = secrets.token_urlsafe(16)
+        detail = "Public card enabled"
+    log_action(current_user.id, "share_updated", detail)
+    db.session.commit()
+    flash(detail + ".")
+    return redirect(url_for("profile.view"))
+
+
+@bp.post("/share/regenerate")
+def share_regenerate() -> ResponseReturnValue:
+    prof = _current_profile()
+    if not prof.share_enabled or not prof.public_token:
+        abort(404)
+    prof.public_token = secrets.token_urlsafe(16)
+    log_action(current_user.id, "share_updated", "Share link regenerated")
+    db.session.commit()
+    flash("New share link generated; the old link no longer works.")
+    return redirect(url_for("profile.view"))
 
 
 @bp.route("/edit", methods=["GET", "POST"])
