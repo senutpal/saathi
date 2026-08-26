@@ -14,12 +14,83 @@ from flask import current_app
 from sqlalchemy import select
 
 from ..extensions import db
-from ..models import Contact, Event
+from ..models import Contact, Event, Habit, HabitLog
 from ..utils import ist_to_utc_naive, ist_today
 
 log = logging.getLogger(__name__)
 
 _last_sync_day: date | None = None
+
+GRID_DAYS = 60
+
+# Literal Tailwind classes keyed by palette KEY — interpolated color strings
+# never survive JIT purging (B17 pitfall P6); muted/ring stay semantic tokens.
+GRID_FILL: dict[str | None, str] = {
+    "sky": "bg-sky-500",
+    "emerald": "bg-emerald-500",
+    "amber": "bg-amber-500",
+    "rose": "bg-rose-500",
+    "violet": "bg-violet-500",
+}
+GRID_EMPTY = "bg-muted"
+
+
+def habit_streaks(logged: set[date], today: date, window: int = GRID_DAYS) -> tuple[int, int]:
+    """(current, longest) done-day run lengths; day arithmetic ignores months.
+
+    A Python loop beats SQL gaps-and-islands here: window functions through
+    SQLAlchemy mean text() fragments and dialect-coupled tests for zero gain
+    at <=60 rows (B17 §3.1).
+    """
+    current = 0
+    probe = today if today in logged else today - timedelta(days=1)
+    while probe in logged:
+        current += 1
+        probe -= timedelta(days=1)
+
+    longest = run = 0
+    for offset in range(window):
+        day = today - timedelta(days=offset)
+        run = run + 1 if day in logged else 0
+        longest = max(longest, run)
+    return current, longest
+
+
+def habit_overview(user_id: int, today: date | None = None) -> list[dict]:
+    """Per-habit grid/streak rows in two queries total (budget law)."""
+    day = today or ist_today()
+    habits = list(
+        db.session.scalars(
+            select(Habit).where(Habit.user_id == user_id).order_by(Habit.id)
+        )
+    )
+    if not habits:
+        return []
+    since = day - timedelta(days=GRID_DAYS - 1)
+    logged_pairs = db.session.execute(
+        select(HabitLog.habit_id, HabitLog.log_date)
+        .join(Habit, HabitLog.habit_id == Habit.id)
+        .where(Habit.user_id == user_id, HabitLog.log_date >= since)
+    ).all()
+    by_habit: dict[int, set[date]] = {}
+    for habit_id, logged_on in logged_pairs:
+        by_habit.setdefault(habit_id, set()).add(logged_on)
+
+    days = [day - timedelta(days=offset) for offset in range(GRID_DAYS - 1, -1, -1)]
+    rows = []
+    for habit in habits:
+        logged = by_habit.get(habit.id, set())
+        current, longest = habit_streaks(logged, day)
+        rows.append(
+            {
+                "habit": habit,
+                "logged": logged,
+                "days": days,
+                "current": current,
+                "longest": longest,
+            }
+        )
+    return rows
 
 
 def _anniv_in_window(dob: date, today: date, days: int) -> date | None:

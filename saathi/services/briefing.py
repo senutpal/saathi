@@ -22,6 +22,7 @@ from ..models.base import utcnow
 from ..utils import utc_to_ist_wall
 from .agenda import day_events
 from .daily import upcoming_birthdays as _fetch_upcoming_birthdays
+from .daily import habit_overview as _fetch_habit_overview
 from .search import get_weather
 
 log = logging.getLogger(__name__)
@@ -83,6 +84,15 @@ def _upcoming_birthdays(user_id: int, today: date) -> list[Any]:
     return list(_fetch_upcoming_birthdays(user_id, today))
 
 
+HABIT_CARD_LIMIT = 5
+
+
+def _habit_rows(user_id: int, today: date) -> list[dict]:
+    if "habits" not in db.metadata.tables:
+        return []
+    return _fetch_habit_overview(user_id, today)[:HABIT_CARD_LIMIT]
+
+
 def _weather() -> dict | None:
     city = current_app.config.get("WEATHER_CITY", "")
     if not city:
@@ -124,6 +134,7 @@ def build_briefing(user_id: int, *, now_fn: Callable[[], datetime] = utcnow) -> 
         "overdue_count": _safe("overdue", lambda: _overdue_count(user_id, now), 0),
         "unread_count": _safe("unread", lambda: _unread_count(user_id), 0),
         "birthdays": _safe("birthdays", lambda: _upcoming_birthdays(user_id, today), []),
+        "habit_rows": _safe("habit_rows", lambda: _habit_rows(user_id, today), []),
         "recent_notes": _safe("recent_notes", lambda: _recent_notes(user_id), []),
         "weather": _safe("weather", _weather, None),
         "on_this_day": _safe("on_this_day", lambda: _on_this_day(user_id, now), None),

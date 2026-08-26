@@ -19,6 +19,7 @@ from wtforms.validators import DataRequired, Length, Optional
 
 from ..extensions import db
 from ..models import Habit, HabitLog
+from ..services.daily import GRID_EMPTY, GRID_FILL, habit_overview
 from ..utils import get_own_or_404, ist_today, log_action
 
 bp = Blueprint("habits", __name__, url_prefix="/habits")
@@ -44,31 +45,15 @@ class HabitForm(FlaskForm):
     )
 
 
-def _own_habits() -> list[Habit]:
-    return list(
-        db.session.scalars(select(Habit).where(Habit.user_id == current_user.id).order_by(Habit.id))
-    )
-
-
 @bp.get("")
 def index() -> str:
     form = HabitForm()
-    habits = _own_habits()
-    done_today = set()
-    if habits:
-        today = ist_today()
-        done_today = set(
-            db.session.scalars(
-                select(HabitLog.habit_id).where(
-                    HabitLog.habit_id.in_([h.id for h in habits]), HabitLog.log_date == today
-                )
-            )
-        )
     return render_template(
         "habits/index.html",
-        rows=_overview(habits, done_today),
+        rows=habit_overview(current_user.id),
         form=form,
-        palette=PALETTE,
+        grid_fill=GRID_FILL,
+        grid_empty=GRID_EMPTY,
     )
 
 
@@ -116,11 +101,3 @@ def delete(habit_id: int) -> ResponseReturnValue:
     db.session.commit()
     flash("Habit deleted.")
     return redirect(url_for("habits.index"))
-
-
-def _overview(habits: list[Habit], done_today: set[int]) -> list[dict]:
-    """Template-facing rows; streak/grid fields arrive with S4."""
-    return [
-        {"habit": h, "done_today": h.id in done_today, "current": 0, "longest": 0, "days": []}
-        for h in habits
-    ]

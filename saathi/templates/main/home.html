@@ -96,10 +96,35 @@
       {% endif %}
     </section>
 
-    {% if not has_habits %}
-    <section class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-6 text-center" aria-label="Habits coming soon">
-      <h3 class="text-sm font-medium">Habits</h3>
-      <p class="mt-1 text-xs text-muted-foreground">Streak tracking arrives in a future update.</p>
+    {% if has_habits %}
+    <section class="rounded-lg border border-border bg-card p-6" aria-label="Habits">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-medium">Habits</h3>
+        <a href="{{ url_for('habits.index') }}" class="text-xs text-muted-foreground transition-colors hover:text-foreground">All habits</a>
+      </div>
+      {% if habit_rows %}
+      <ul class="mt-4 space-y-2">
+        {% for row in habit_rows %}
+        <li class="flex items-center justify-between gap-3 rounded-md border border-border p-3">
+          <p class="flex min-w-0 items-center gap-1.5 text-sm font-medium">
+            <span class="min-w-0 truncate">{{ row.habit.name }}</span>
+            {% if row.current >= 7 %}
+            <svg class="size-3.5 shrink-0 text-amber-500" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                 role="img" aria-label="{{ row.current }}-day streak">
+              <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+            </svg>
+            {% endif %}
+          </p>
+          <span class="shrink-0 inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium tabular-nums text-muted-foreground">
+            {{ row.current }}-day streak
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="mt-4 text-sm text-muted-foreground">No habits yet — start one and build a streak.</p>
+      {% endif %}
     </section>
     {% endif %}
 
