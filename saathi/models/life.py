@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import date
 
 from sqlalchemy import (
+    CheckConstraint,
     Date,
     ForeignKey,
     Index,
@@ -57,3 +58,20 @@ class HabitLog(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     habit_id: Mapped[int] = mapped_column(ForeignKey("habits.id", ondelete="CASCADE"))
     log_date: Mapped[date] = mapped_column(Date)
+
+
+class Mood(db.Model):
+    """One row per user per day (DB-enforced); score 1-5 CHECK reserved since B04."""
+
+    __tablename__ = "moods"
+    __table_args__ = (
+        UniqueConstraint("user_id", "mood_date", name="uq_moods_user_date"),
+        CheckConstraint("score BETWEEN 1 AND 5", name="ck_moods_score"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    # NOT named "date": SQL keyword + shadows the python date type
+    mood_date: Mapped[date] = mapped_column(Date)
+    score: Mapped[int] = mapped_column()
+    note: Mapped[str | None] = mapped_column(Text)

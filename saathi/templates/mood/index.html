@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Mood — Saathi{% endblock %}
+{% block header %}Mood journal{% endblock %}
+{% block content %}
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="lg:col-span-2" aria-label="Mood month view">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <div>
+        <h2 class="font-semibold tracking-tight">{{ month_label }}</h2>
+        {% if average is not none %}
+        <p class="text-sm text-muted-foreground">Average {{ average }} / 5 across {{ entries|length }} entr{{ 'y' if entries|length == 1 else 'ies' }}.</p>
+        {% else %}
+        <p class="text-sm text-muted-foreground">No entries this month yet.</p>
+        {% endif %}
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="{{ url_for('mood.index', month=prev_param) }}"
+           class="inline-flex h-8 items-center rounded-md border border-border bg-card px-3 text-xs font-medium transition-colors hover:bg-accent hover:text-foreground">Previous</a>
+        <span class="text-xs tabular-nums text-muted-foreground">{{ month_param }}</span>
+        <a href="{{ url_for('mood.index', month=next_param) }}"
+           class="inline-flex h-8 items-center rounded-md border border-border bg-card px-3 text-xs font-medium transition-colors hover:bg-accent hover:text-foreground">Next</a>
+      </div>
+    </div>
+
+    {% if entries %}
+    <ul class="space-y-2">
+      {% for entry in entries %}
+      <li class="flex items-center justify-between gap-3 rounded-md border border-border bg-card p-3">
+        <p class="text-sm font-medium tabular-nums">{{ entry.mood_date.strftime('%d %b') }}</p>
+        <p class="flex min-w-0 flex-1 items-center gap-2">
+          <span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{{ entry.score }}/5</span>
+          {% if entry.note %}<span class="min-w-0 truncate text-xs text-muted-foreground">{{ entry.note }}</span>{% endif %}
+        </p>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+      <p class="text-sm font-medium">Nothing logged in {{ month_label }}</p>
+      <p class="mt-1 text-sm text-muted-foreground">How was your day? One score per date.</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <section aria-label="Set mood">
+    <form action="{{ url_for('mood.set_mood') }}" method="post" class="rounded-lg border border-border bg-card p-6">
+      {{ form.hidden_tag() }}
+      <h3 class="text-sm font-medium">How are you today?</h3>
+      <div class="mt-4 space-y-3">
+        {{ form.mood_date.label(for="mood_date", class="text-xs font-medium text-muted-foreground") }}
+        {{ form.mood_date(id="mood_date", class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+        <fieldset class="space-y-1.5">
+          <legend class="text-xs font-medium text-muted-foreground">Score</legend>
+          {% for value, label in form.score.choices %}
+          <label class="flex cursor-pointer items-center gap-2 text-sm">
+            <input type="radio" name="score" value="{{ value }}" {{ 'checked' if form.score.data == value }} required
+                   class="size-4 border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            {{ value }} · {{ label }}
+          </label>
+          {% endfor %}
+        </fieldset>
+        {{ form.note.label(for="note", class="text-xs font-medium text-muted-foreground") }}
+        {{ form.note(id="note", rows=3, class="flex w-full rounded-md border border-input bg-card px-3 py-2 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+      </div>
+      <button type="submit"
+              class="mt-4 inline-flex h-9 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Save mood</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

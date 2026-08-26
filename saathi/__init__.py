@@ -39,6 +39,7 @@ def register_blueprints(app: Flask) -> None:
         habits,
         history,
         main,
+        mood,
         notes,
         notifications,
         profile,
@@ -56,6 +57,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(history.bp)
     app.register_blueprint(contacts.bp)
     app.register_blueprint(habits.bp)
+    app.register_blueprint(mood.bp)
 
 
 def register_error_handlers(app: Flask) -> None:
