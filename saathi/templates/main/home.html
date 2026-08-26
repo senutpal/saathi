@@ -13,6 +13,35 @@
     {% endif %}
   </div>
 
+  {% if undo_event %}
+  <div class="flex items-center justify-between gap-3 rounded-md border border-border bg-muted px-4 py-2 text-sm" role="status">
+    <span class="min-w-0 truncate">
+      Reminder &ldquo;{{ undo_event.title }}&rdquo; created for
+      <span class="tabular-nums">{{ undo_event.when | ist }}</span>
+    </span>
+    <form method="post" action="{{ url_for('main.quick_add_undo', event_id=undo_event.id) }}" class="shrink-0">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit"
+              class="text-sm font-medium underline underline-offset-2 hover:text-foreground">Undo</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('main.quick_add') }}"
+        class="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-4" aria-label="Quick add">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="text" name="text" required maxlength="400"
+           placeholder='Try: rem tomorrow 6pm submit fees'
+           aria-label="Natural-language quick add"
+           class="flex h-9 min-w-0 flex-1 rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+    <button type="submit"
+            class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Add</button>
+    <p class="w-full text-xs text-muted-foreground">
+      Prefix with <code class="rounded bg-muted px-1">rem</code> for a reminder (e.g. &ldquo;friday team sync&rdquo;,
+      &ldquo;in 2 days call dentist&rdquo;) or just type to keep a note.
+    </p>
+  </form>
+
   {% if overdue_count or unread_count %}
   <div class="flex flex-wrap items-center gap-2" aria-label="Attention needed">
     {% if overdue_count %}
