@@ -2,18 +2,48 @@
 
 from __future__ import annotations
 
+import time
+
 from flask import Response, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from ...extensions import db, limiter
-from ...models import User
+from ...models import LoginRecord, User
+from ...models.base import utcnow
 from ...utils import log_action, safe_next
 from . import bp, lockout
 from .forms import LoginForm, RegisterForm
 
 DUMMY_HASH = generate_password_hash("not-a-real-password-at-all")
 LOGIN_FAILED_MESSAGE = "Invalid email or password"
+
+
+def finish_login(user: User) -> Response:
+    """Complete a fully authenticated login (password-only or 2FA path).
+
+    Single choke point for: session regeneration (clear before login_user),
+    the cookie's login_ts stamp (user_loader revocation compares against it),
+    the LoginRecord audit row, and the validated ?next= redirect.
+    """
+    # Flask sessions are signed cookies with nothing server-side to rotate,
+    # so fixation defense is this explicit clear (B03 §5 pitfall).
+    session.clear()
+    login_user(user)
+    session["login_ts"] = time.time()
+    db.session.add(
+        LoginRecord(
+            user_id=user.id,
+            at=utcnow(),
+            ip=(request.remote_addr or "")[:45] or None,
+            user_agent=(str(request.user_agent) or "")[:200] or None,
+        )
+    )
+    log_action(user.id, "login", "Signed in")
+    db.session.commit()
+    flash(f"Welcome back, {user.username}.")
+    next_target = request.values.get("next")
+    return redirect(safe_next(next_target) or url_for("main.index"))
 
 
 @bp.route("/register", methods=["GET", "POST"])
@@ -61,14 +91,7 @@ def login() -> str | Response:
             ok = False
         if ok and user is not None:
             lockout.clear_failures(email)
-            # Flask sessions are signed cookies with nothing server-side to rotate,
-            # so fixation defense is this explicit clear (B03 §5 pitfall).
-            session.clear()
-            login_user(user)
-            log_action(user.id, "login", "Signed in")
-            db.session.commit()
-            flash(f"Welcome back, {user.username}.")
-            return redirect(safe_next(next_target) or url_for("main.index"))
+            return finish_login(user)
         flash(LOGIN_FAILED_MESSAGE, "error")
         lockout.record_failure(email)
         # Re-render clean: keeps wrong-password and unknown-email responses

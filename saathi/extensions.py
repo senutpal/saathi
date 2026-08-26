@@ -1,13 +1,14 @@
 import sqlite3
+from datetime import UTC, datetime
 
 from click import echo
-from flask import Flask
+from flask import Flask, session
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
-from sqlalchemy import event
+from sqlalchemy import event, select
 from sqlalchemy.engine import Engine
 
 db = SQLAlchemy()
@@ -45,7 +46,24 @@ def init_extensions(app: Flask) -> None:
         # deferred: models import db from this module (circular-import wall)
         from .models import User
 
-        return db.session.get(User, int(user_id))
+        # A plain SELECT, NOT db.session.get(): the scoped session keeps
+        # expire_on_commit=False, so get() may serve a stale identity-map row
+        # and miss a just-committed session_invalid_before bump (revocation
+        # would silently lag). Re-reading per request makes the kill switch
+        # take effect on the very next hit.
+        user = db.session.scalar(select(User).where(User.id == int(user_id)))
+        if user is None:
+            return None
+        # Global kill switch ("log out everywhere"): every cookie carries a
+        # login_ts stamp (set by auth.finish_login); any cookie predating the
+        # user's session_invalid_before — or lacking the stamp entirely, e.g.
+        # pre-P13 cookies — resolves to an anonymous request. Runs here because
+        # the loader executes on every authenticated request.
+        ts = session.get("login_ts")
+        invalid_before = user.session_invalid_before or datetime.min
+        if ts is None or datetime.fromtimestamp(ts, tz=UTC).replace(tzinfo=None) < invalid_before:
+            return None
+        return user
 
     csrf.init_app(app)
     limiter.init_app(app)
