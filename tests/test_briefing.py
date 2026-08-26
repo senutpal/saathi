@@ -202,4 +202,79 @@ def test_dashboard_stays_within_query_budget(app, logged_in_client, session):
         event.remove(db.engine, "before_cursor_execute", count_hook)
 
     assert response.status_code == 200
-    assert len(statements) <= 15, f"dashboard issued {len(statements)} queries"
+    # P10 baseline was 12; P11 cards add ~4 (birthdays 1, habits+logs 2,
+    # mood 1) — ADR-029 pins the ceiling at 18 until the P14 perf pass.
+    assert len(statements) <= 18, f"dashboard issued {len(statements)} queries"
+
+
+# --- P11 pack-A cards --------------------------------------------------------
+
+
+def test_birthday_card_renders_contact_inside_window(logged_in_client, session):
+    from datetime import date, timedelta
+
+    from saathi.models import Contact
+
+    user = current_user_row()
+    upcoming = date.today() + timedelta(days=3)
+    db.session.add(
+        Contact(
+            user_id=user.id,
+            name="Soon Sam",
+            dob=date(upcoming.year - 30, upcoming.month, upcoming.day),
+        )
+    )
+    db.session.commit()
+
+    page = logged_in_client.get("/").get_data(as_text=True)
+
+    assert "Birthdays" in page and "turns 30" in page
+
+
+def test_birthday_card_absent_when_no_contacts_qualify(logged_in_client, session):
+    from datetime import date, timedelta
+
+    from saathi.models import Contact
+
+    user = current_user_row()
+    far_past = date.today() - timedelta(days=120)
+    db.session.add(
+        Contact(
+            user_id=user.id,
+            name="Ages Ago",
+            dob=date(far_past.year - 20, far_past.month, max(far_past.day, 28)),
+        )
+    )
+    db.session.commit()
+
+    page = logged_in_client.get("/").get_data(as_text=True)
+
+    assert "Birthdays" not in page
+
+
+def test_habit_card_shows_streaks_or_empty_prompt(logged_in_client, session):
+    from datetime import date, timedelta
+
+    from saathi.models import Habit, HabitLog
+
+    user = current_user_row()
+    habit = Habit(user_id=user.id, name="Read", color="sky")
+    db.session.add(habit)
+    db.session.commit()
+    for offset in range(3):
+        db.session.add(HabitLog(habit_id=habit.id, log_date=date.today() - timedelta(days=offset)))
+    db.session.commit()
+
+    populated = logged_in_client.get("/").get_data(as_text=True)
+    assert "3-day streak" in populated
+
+    Habit.query.delete()
+    db.session.commit()
+    empty = logged_in_client.get("/").get_data(as_text=True)
+    assert "No habits yet" in empty
+
+
+def test_mood_card_degrades_to_prompt_without_entries(logged_in_client, session):
+
+    empty = logged_in_client.get("/").get_data(as_text=True)
+    assert "Log a daily score" in empty
