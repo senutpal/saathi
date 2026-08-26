@@ -63,14 +63,16 @@ uv run waitress-serve --host=127.0.0.1 --port=8000 wsgi:app
 import sys
 import os
 
-path = '/home/<username>/saathi/saathi'
+path = "/home/<username>/saathi/saathi"
 if path not in sys.path:
     sys.path.insert(0, path)
 
 from dotenv import load_dotenv
-load_dotenv(os.path.join(path, '.env'))
+
+load_dotenv(os.path.join(path, ".env"))
 
 from saathi import create_app
+
 application = create_app()
 ```
 
