@@ -32,14 +32,14 @@
             <form action="{{ url_for('habits.toggle', habit_id=row.habit.id) }}" method="post" class="inline">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit"
-                      class="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring {{ 'border border-border bg-card hover:bg-accent hover:text-foreground' if not done_today else 'bg-primary text-primary-foreground hover:bg-primary/90' }}">
+                      class="inline-flex h-7 items-center justify-center rounded-md px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring {{ 'border border-border bg-card text-foreground hover:bg-accent' if not done_today else 'bg-primary text-primary-foreground hover:bg-primary/90' }}">
                 {{ 'Done today' if done_today else 'Mark today' }}
               </button>
             </form>
             <form action="{{ url_for('habits.delete', habit_id=row.habit.id) }}" method="post" class="inline">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" aria-label="Delete {{ row.habit.name }}"
-                      class="rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-destructive">Delete</button>
+                      class="inline-flex h-7 items-center justify-center rounded-md px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-destructive">Delete</button>
             </form>
           </div>
         </div>
