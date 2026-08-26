@@ -33,6 +33,7 @@ def _configure_storage(app: Flask) -> None:
 def register_blueprints(app: Flask) -> None:
     from .blueprints import (
         auth,
+        backup,
         contacts,
         events,
         expenses,
@@ -60,6 +61,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(habits.bp)
     app.register_blueprint(mood.bp)
     app.register_blueprint(expenses.bp)
+    app.register_blueprint(backup.bp)
 
 
 def register_error_handlers(app: Flask) -> None:

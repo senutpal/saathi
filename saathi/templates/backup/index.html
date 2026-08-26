@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Backup — Saathi{% endblock %}
+{% block header %}Backup &amp; restore{% endblock %}
+{% block content %}
+<div class="grid gap-6 lg:grid-cols-2">
+  <section class="rounded-lg border border-border bg-card p-6" aria-label="Export">
+    <h2 class="text-sm font-medium">Export your data</h2>
+    <p class="mt-1 text-sm text-muted-foreground">
+      A portable JSON snapshot of everything you own — profile, contacts, habits,
+      moods, expenses, reminders, notes and history. Uploaded files stay on the
+      server and are not part of the backup.
+    </p>
+    <div class="mt-4 flex flex-wrap items-center gap-2">
+      <a href="{{ url_for('backup.export_json') }}"
+         class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Download backup (.json)</a>
+      <a href="{{ url_for('backup.export_expenses_csv') }}"
+         class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Expenses only (.csv)</a>
+    </div>
+  </section>
+
+  <section class="rounded-lg border border-border bg-card p-6" aria-label="Import">
+    <h2 class="text-sm font-medium">Restore from a backup</h2>
+    <p class="mt-1 text-sm text-muted-foreground">
+      Upload a saathi-v1 JSON file. Restored rows are added to what is already
+      here (nothing is overwritten); the whole file either imports or nothing does.
+    </p>
+    <form action="{{ url_for('backup.import_json') }}" method="post" enctype="multipart/form-data" class="mt-4 space-y-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="file" name="file" accept="application/json,.json" required
+             class="block w-full rounded-md border border-input bg-card px-3 py-2 text-sm shadow-none file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1 file:text-sm file:font-medium text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <button type="submit"
+              class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Restore</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

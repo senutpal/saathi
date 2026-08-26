@@ -103,6 +103,13 @@ def get_own_or_404(model: type[db.Model], obj_id: int) -> db.Model:
     return obj
 
 
+def csv_safe(cell: str) -> str:
+    """Prefix-quote spreadsheet formula triggers (OWASP CSV-injection guidance)."""
+    if cell.startswith(("=", "+", "-", "@", "\t")):
+        return "'" + cell
+    return cell
+
+
 def log_action(
     user_id: int,
     activity_type: str,

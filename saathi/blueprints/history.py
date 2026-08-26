@@ -15,7 +15,7 @@ from ..extensions import db
 from ..models import ActivityLog
 from ..models.base import utcnow
 from ..services.notes import like_escape
-from ..utils import ist_format, utc_to_ist_wall
+from ..utils import csv_safe, ist_format, utc_to_ist_wall
 
 bp = Blueprint("history", __name__, url_prefix="/history")
 
@@ -82,13 +82,6 @@ def page() -> str:
     )
 
 
-def _csv_safe(cell: str) -> str:
-    """Prefix-quote spreadsheet formula triggers (OWASP CSV-injection guidance)."""
-    if cell.startswith(("=", "+", "-", "@", "\t")):
-        return "'" + cell
-    return cell
-
-
 @bp.get("/export.csv")
 @login_required
 def export_csv() -> ResponseReturnValue:
@@ -101,9 +94,9 @@ def export_csv() -> ResponseReturnValue:
         writer.writerow(
             [
                 ist_format(row.occurred_at),
-                _csv_safe(row.activity_type),
-                _csv_safe(row.title),
-                _csv_safe(row.details or ""),
+                csv_safe(row.activity_type),
+                csv_safe(row.title),
+                csv_safe(row.details or ""),
             ]
         )
     stamp = utc_to_ist_wall(utcnow()).date()
