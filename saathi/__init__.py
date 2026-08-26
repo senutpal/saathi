@@ -36,6 +36,7 @@ def register_blueprints(app: Flask) -> None:
         contacts,
         events,
         files,
+        habits,
         history,
         main,
         notes,
@@ -54,6 +55,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(search.bp)
     app.register_blueprint(history.bp)
     app.register_blueprint(contacts.bp)
+    app.register_blueprint(habits.bp)
 
 
 def register_error_handlers(app: Flask) -> None:

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Habits — Saathi{% endblock %}
+{% block header %}Habits{% endblock %}
+{% block content %}
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="lg:col-span-2" aria-label="Habit list">
+    <div class="mb-4 flex items-center justify-between">
+      <h2 class="font-semibold tracking-tight">Habits</h2>
+      <p class="text-sm text-muted-foreground">{{ rows|length }} tracked.</p>
+    </div>
+
+    {% if rows %}
+    <ul class="space-y-3">
+      {% for row in rows %}
+      <li class="rounded-lg border border-border bg-card p-4">
+        <div class="flex items-center justify-between gap-3">
+          <p class="min-w-0 truncate text-sm font-medium">{{ row.habit.name }}</p>
+          <div class="flex shrink-0 items-center gap-1">
+            <form action="{{ url_for('habits.toggle', habit_id=row.habit.id) }}" method="post" class="inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit"
+                      class="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring {{ 'border border-border bg-card hover:bg-accent hover:text-foreground' if not row.done_today else 'bg-primary text-primary-foreground hover:bg-primary/90' }}">
+                {{ 'Done today' if row.done_today else 'Mark today' }}
+              </button>
+            </form>
+            <form action="{{ url_for('habits.delete', habit_id=row.habit.id) }}" method="post" class="inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" aria-label="Delete {{ row.habit.name }}"
+                      class="rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-destructive">Delete</button>
+            </form>
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+      <p class="text-sm font-medium">No habits yet</p>
+      <p class="mt-1 text-sm text-muted-foreground">Small daily wins stack up here.</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <section aria-label="Add habit">
+    <form action="{{ url_for('habits.add') }}" method="post" class="rounded-lg border border-border bg-card p-6">
+      {{ form.hidden_tag() }}
+      <h3 class="text-sm font-medium">Start a habit</h3>
+      <div class="mt-4 space-y-3">
+        {{ form.name.label(for="name", class="text-xs font-medium text-muted-foreground") }}
+        {{ form.name(id="name", placeholder="e.g. Read 20 pages", class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+        {{ form.color.label(for="color", class="text-xs font-medium text-muted-foreground") }}
+        {{ form.color(id="color", class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+      </div>
+      <button type="submit"
+              class="mt-4 inline-flex h-9 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Add habit</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

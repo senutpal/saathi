@@ -15,7 +15,7 @@ from .content import (
     WeatherCache,
 )
 from .identity import EducationEntry, Profile, User, WorkEntry
-from .life import Contact
+from .life import Contact, Habit, HabitLog
 from .scheduling import Event, Notification
 
 __all__ = [
@@ -23,6 +23,8 @@ __all__ = [
     "Contact",
     "EducationEntry",
     "Event",
+    "Habit",
+    "HabitLog",
     "Note",
     "NoteTag",
     "Notification",
