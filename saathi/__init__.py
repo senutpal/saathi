@@ -34,6 +34,7 @@ def register_blueprints(app: Flask) -> None:
     from .blueprints import (
         auth,
         backup,
+        calendar,
         contacts,
         events,
         expenses,
@@ -53,6 +54,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(auth.bp)
     app.register_blueprint(profile.bp)
     app.register_blueprint(events.bp)
+    app.register_blueprint(calendar.bp)
     app.register_blueprint(notifications.bp)
     app.register_blueprint(notes.bp)
     app.register_blueprint(files.bp)

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Calendar - Saathi{% endblock %}
+{% block header %}Calendar{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+  <h2 class="font-semibold tracking-tight">{{ cur_label }}</h2>
+  <div class="flex items-center gap-2">
+    <a href="{{ url_for('calendar.month_view', month=prev_month) }}"
+       class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground"
+       aria-label="Previous month">&lsaquo; Prev</a>
+    <a href="{{ url_for('calendar.month_view') }}"
+       class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground">Today</a>
+    <a href="{{ url_for('calendar.month_view', month=next_month) }}"
+       class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground"
+       aria-label="Next month">Next &rsaquo;</a>
+  </div>
+</div>
+
+<div class="grid grid-cols-7 gap-2" role="grid" aria-label="Month calendar">
+  {% for name in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] %}
+  <div class="py-1 text-center text-xs font-medium text-muted-foreground">{{ name }}</div>
+  {% endfor %}
+  {% for week in grid.weeks %}{% for cell in week %}
+    {% if not cell.in_month %}
+    <div class="min-h-24 rounded-md border border-border bg-muted/40 p-1" aria-hidden="true"></div>
+    {% else %}
+      {% set chips = grid.by_date.get(cell.iso, []) %}
+      <div class="min-h-24 rounded-md border p-1 {{ 'border-primary' if cell.is_today else 'border-border bg-card' }}"
+           {% if cell.is_today %}data-today="{{ cell.iso }}"{% endif %}>
+        <a href="{{ url_for('events.day', date=cell.iso) }}"
+           class="inline-block rounded px-0.5 text-xs font-medium tabular-nums hover:bg-accent hover:underline">{{ cell.date.day }}</a>
+        {% for chip in chips[:3] %}
+        <span class="mt-0.5 block truncate rounded-sm bg-muted px-1 text-[11px] leading-4 text-muted-foreground"
+              title="{{ chip.label }}">{{ chip.label }}</span>
+        {% endfor %}
+        {% if chips|length > 3 %}
+        <a href="{{ url_for('events.day', date=cell.iso) }}"
+           class="mt-0.5 inline-block text-[11px] text-muted-foreground underline">+{{ chips|length - 3 }} more</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endfor %}{% endfor %}
+</div>
+{% endblock %}
