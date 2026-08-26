@@ -18,8 +18,13 @@ from saathi import create_app
 from saathi.extensions import db
 from saathi.models import (
     ActivityLog,
+    Contact,
     EducationEntry,
     Event,
+    Expense,
+    Habit,
+    HabitLog,
+    Mood,
     Note,
     Profile,
     Tag,
@@ -168,8 +173,84 @@ def run_seed(app: Flask, *, force: bool = False) -> str:
         )
         db.session.commit()
         made = _demo_uploads(demo)
+        _demo_life_rows(demo)
     files = ", ".join(made)
     return f"seeded {MARKER_EMAIL} / demo1234 (+1 alt user); files: {files}; reminder due in ~2 min"
+
+
+def _demo_life_rows(user: User) -> None:
+    """Pack-A demo data: one birthday due, streaks, a mood week, some spend."""
+    from decimal import Decimal
+
+    from saathi.utils import ist_today
+
+    today = ist_today()
+    birthday_soon = today + timedelta(days=3)
+
+    def dob_for(year: int) -> date | None:
+        # Feb-29 target year may be common -> celebrate Feb-28 like the engine
+        try:
+            return date(year, birthday_soon.month, birthday_soon.day)
+        except ValueError:
+            return date(year, 2, 28)
+
+    rows = [
+        Contact(
+            user_id=user.id,
+            name="Meera (b-day in 3 days)",
+            phone="+91 98765 43210",
+            email="meera@example.com",
+            dob=dob_for(2002),
+            notes="Loves filter coffee.",
+        ),
+        Contact(
+            user_id=user.id,
+            name="Ravi",
+            phone="+91 90000 11122",
+            dob=date(2000, 2, 29),  # exercises the Feb-29 fallback on the card
+        ),
+        Habit(user_id=user.id, name="Read 20 pages", color="sky"),
+        Habit(user_id=user.id, name="Morning walk", color="emerald"),
+    ]
+    db.session.add_all(rows)
+    db.session.flush()
+    read_habit, walk_habit = rows[2], rows[3]
+    for offset in range(9):  # current streak of 9 -> flame on the dashboard
+        db.session.add(HabitLog(habit_id=read_habit.id, log_date=today - timedelta(days=offset)))
+    for offset in range(4):
+        db.session.add(HabitLog(habit_id=walk_habit.id, log_date=today - timedelta(days=offset)))
+
+    scores = (3, 4, 4, 2, 3, 5, 4)
+    for idx, score in enumerate(scores):
+        db.session.add(
+            Mood(
+                user_id=user.id,
+                mood_date=today - timedelta(days=len(scores) - 1 - idx),
+                score=score,
+                note="demo day" if score == 5 else None,
+            )
+        )
+
+    spends = [
+        ("249.50", "books", 0, "Flask in Action"),
+        ("60.00", "food", 0, "Canteen"),
+        ("750.00", "bills", 2, "Broadband"),
+        ("120.00", "travel", 3, "Metro card"),
+        ("499.00", "fun", 5, "Concert"),
+        ("89.99", "food", 6, ""),
+    ]
+    for amount, category, days_ago, note in spends:
+        cents = int((Decimal(amount) * 100).to_integral_exact())
+        db.session.add(
+            Expense(
+                user_id=user.id,
+                amount_cents=cents,
+                category=category,
+                spent_on=today - timedelta(days=days_ago),
+                note=note or None,
+            )
+        )
+    db.session.commit()
 
 
 def main() -> None:
