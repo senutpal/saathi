@@ -9,7 +9,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from ...extensions import db, limiter
 from ...models import User
 from ...utils import log_action, safe_next
-from . import bp
+from . import bp, lockout
 from .forms import LoginForm, RegisterForm
 
 DUMMY_HASH = generate_password_hash("not-a-real-password-at-all")
@@ -42,7 +42,16 @@ def login() -> str | Response:
         return redirect(safe_next(next_target) or url_for("main.index"))
     form = LoginForm()
     if form.validate_on_submit():
-        user = db.session.scalar(db.select(User).filter_by(email=form.email.data.lower()))
+        email = form.email.data.lower()
+        # Lockout gate BEFORE any password work: burn the same scrypt path and
+        # render the byte-identical failure body, so a locked account is
+        # indistinguishable from a wrong password (no "account locked" leak).
+        if lockout.is_locked(email):
+            check_password_hash(DUMMY_HASH, form.password.data)
+            flash(LOGIN_FAILED_MESSAGE, "error")
+            form = LoginForm(formdata={})
+            return render_template("auth/login.html", form=form, next_target=next_target)
+        user = db.session.scalar(db.select(User).filter_by(email=email))
         if user is not None:
             ok = user.check_password(form.password.data)
         else:
@@ -51,6 +60,7 @@ def login() -> str | Response:
             check_password_hash(DUMMY_HASH, form.password.data)
             ok = False
         if ok and user is not None:
+            lockout.clear_failures(email)
             # Flask sessions are signed cookies with nothing server-side to rotate,
             # so fixation defense is this explicit clear (B03 §5 pitfall).
             session.clear()
@@ -60,6 +70,7 @@ def login() -> str | Response:
             flash(f"Welcome back, {user.username}.")
             return redirect(safe_next(next_target) or url_for("main.index"))
         flash(LOGIN_FAILED_MESSAGE, "error")
+        lockout.record_failure(email)
         # Re-render clean: keeps wrong-password and unknown-email responses
         # byte-identical (no echoed email — flash carries the failure).
         # formdata={} defeats FlaskForm's auto-bind of request.form.

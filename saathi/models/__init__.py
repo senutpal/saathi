@@ -1,8 +1,4 @@
-"""Saathi core schema package — re-exports every model.
-
-Deferred tables (owned by their phase, do NOT create early):
-LoginAttempt / BackupCode -> P13.
-"""
+"""Saathi core schema package — re-exports every model."""
 
 from .base import TimestampMixin, utcnow
 from .content import (
@@ -17,9 +13,11 @@ from .content import (
 from .identity import EducationEntry, Profile, User, WorkEntry
 from .life import Contact, Expense, Habit, HabitLog, Mood
 from .scheduling import CapsuleMessage, Event, Notification
+from .security import BackupCode, LoginAttempt, LoginRecord
 
 __all__ = [
     "ActivityLog",
+    "BackupCode",
     "CapsuleMessage",
     "Contact",
     "EducationEntry",
@@ -27,6 +25,8 @@ __all__ = [
     "Expense",
     "Habit",
     "HabitLog",
+    "LoginAttempt",
+    "LoginRecord",
     "Mood",
     "Note",
     "NoteTag",
