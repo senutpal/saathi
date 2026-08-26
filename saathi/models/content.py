@@ -107,7 +107,7 @@ class ActivityLog(db.Model):
 
 
 class SearchCache(db.Model):
-    """Upstream web-search payload keyed by normalized-query hash (P09).
+    """Upstream web-search payload keyed by normalized-query hash.
 
     source is persisted with the payload so a cache hit can still show
     honest provenance ("Cached · Web") without re-deriving it.

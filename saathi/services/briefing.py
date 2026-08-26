@@ -1,9 +1,7 @@
-"""Daily-briefing aggregator: one dict per authed home render (P10).
+"""Daily-briefing aggregator: one dict per authed home render.
 
 Every card degrades independently — a failing aggregator logs and yields
-its safe default instead of killing the dashboard (phase pitfall). The
-contacts/habits/moods cards key off ``db.metadata.tables`` so P11 can add
-those models without touching this file (documented seam).
+its safe default instead of killing the dashboard.
 """
 
 from __future__ import annotations
@@ -78,8 +76,7 @@ def _recent_notes(user_id: int, limit: int = 3) -> list[Note]:
 
 
 def _upcoming_birthdays(user_id: int, today: date) -> list[Any]:
-    """Real P11 contacts query; the absent-table guard keeps zero-query cost
-    for any DB created before the contacts table existed."""
+    """Contacts query for upcoming birthdays inside window."""
     if "contacts" not in db.metadata.tables:
         return []
     return list(_fetch_upcoming_birthdays(user_id, today))

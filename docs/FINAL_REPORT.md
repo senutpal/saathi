@@ -157,7 +157,6 @@ def get_own_or_404(model: type[T], object_id: int) -> T:
 - **Test Suite Results**: **404 passed in 175 seconds** (100% pass rate).
 - **Branch Coverage**: **96%** (exceeds 70% floor).
 - **IDOR Sweep**: `test_journeys.py` verifies zero existence leaks or unauthorized cross-user reads across all 18 owned entities.
-- *Full test log in [`docs/test-cases.md`](file:///D:/VsCode/saathi/saathi/docs/test-cases.md).*
 
 ---
 

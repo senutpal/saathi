@@ -187,27 +187,27 @@ gantt
     axisFormat %d %b
 
     section Foundation
-    Repo & Tooling (P00)          :done, p00, 2026-08-24, 1d
-    Foundation & Shell (P01)      :done, p01, 2026-08-24, 1d
-    Models & DB Bootstrap (P02)   :done, p02, 2026-08-24, 1d
-    Auth & Spaces [M1] (P03)      :done, p03, 2026-08-24, 1d
+    Repo and Tooling             :done, p00, 2026-08-24, 1d
+    Foundation and Shell         :done, p01, 2026-08-24, 1d
+    Models and DB Bootstrap      :done, p02, 2026-08-24, 1d
+    Auth and Spaces              :done, p03, 2026-08-24, 1d
 
     section Core Modules
-    Profile & CV Generation (P04) :done, p04, 2026-08-24, 1d
-    Events & Ticker Engine (P05)  :done, p05, 2026-08-25, 1d
-    Notifications & Mailer (P06)  :done, p06, 2026-08-25, 1d
-    Notes & Tags (P07)            :done, p07, 2026-08-25, 1d
-    Uploads & Gallery (P08)       :done, p08, 2026-08-25, 1d
-    Web Search & Weather (P09)    :done, p09, 2026-08-25, 1d
-    History & Briefing [M2] (P10) :done, p10, 2026-08-25, 1d
+    Profile and CV Generation    :done, p04, 2026-08-24, 1d
+    Events and Ticker Engine     :done, p05, 2026-08-25, 1d
+    Notifications and Mailer     :done, p06, 2026-08-25, 1d
+    Notes and Tags               :done, p07, 2026-08-25, 1d
+    Uploads and Gallery          :done, p08, 2026-08-25, 1d
+    Web Search and Weather       :done, p09, 2026-08-25, 1d
+    History and Briefing         :done, p10, 2026-08-25, 1d
 
     section Extended Features
-    Feature Pack A - Life (P11)   :done, p11, 2026-08-26, 1d
-    Feature Pack B - Pack (P12)   :done, p12, 2026-08-26, 1d
-    Security Hardening [M3] (P13) :done, p13, 2026-08-26, 1d
+    Life Modules                 :done, p11, 2026-08-26, 1d
+    Calendar and Quickadd        :done, p12, 2026-08-26, 1d
+    Security Hardening           :done, p13, 2026-08-26, 1d
 
-    section Quality & Release
-    Testing & CI (P14)            :done, p14, 2026-08-26, 1d
-    Deploy Live [M4] (P15)        :done, p15, 2026-08-26, 1d
-    Docs & Viva Final (P16)       :active, p16, 2026-08-26, 1d
+    section Quality and Release
+    Testing and CI               :done, p14, 2026-08-26, 1d
+    Deploy Live                  :done, p15, 2026-08-26, 1d
+    Documentation and Viva       :done, p16, 2026-08-26, 1d
 ```

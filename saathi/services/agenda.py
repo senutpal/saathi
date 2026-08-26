@@ -1,4 +1,4 @@
-"""Read-side event queries: IST day agenda and the month-grid provider for P12."""
+"""Read-side event queries: IST day agenda and the month-grid provider."""
 
 from __future__ import annotations
 
@@ -30,10 +30,7 @@ def day_events(user_id: int, day: date) -> list[Event]:
 
 
 def month_grid(user_id: int, year: int, month: int) -> dict:
-    """Monday-first weeks of 7 dates plus events bucketed by local ISO date.
-
-    Pure provider (no template coupling): P12's calendar page renders it as-is.
-    """
+    """Monday-first weeks of 7 dates plus events bucketed by local ISO date."""
     weeks: list[list[date]] = calendar.Calendar(firstweekday=0).monthdatescalendar(year, month)
     lo, _ = ist_day_bounds_utc(weeks[0][0])
     _, hi = ist_day_bounds_utc(weeks[-1][-1])
@@ -101,11 +98,8 @@ def _habit_chips(user_id: int, lo: date, hi: date) -> list[tuple[str, str]]:
 
 
 def build_calendar(user_id: int, year: int, month: int, *, today: date | None = None) -> dict:
-    """Render-ready month grid: cell dicts + chips (events/birthdays/habits).
+    """Render-ready month grid: cell dicts + chips (events/birthdays/habits)."""
 
-    Wraps the frozen P05 month_grid() contract; sibling overlays stay optional
-    via metadata-table guards so pre-P11 databases contribute zero chips.
-    """
     grid = month_grid(user_id, year, month)
     day0 = today or ist_today()
     weeks = [

@@ -1,4 +1,4 @@
-"""Life-log models introduced by P11: contacts, habits, moods, expenses."""
+"""Life-log models: contacts, habits, moods, expenses."""
 
 from __future__ import annotations
 

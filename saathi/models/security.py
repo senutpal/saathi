@@ -1,7 +1,6 @@
 """Security ledger models: login lockout, backup codes, sign-in history.
 
-Deferred from P02 per the models/__init__ contract; User-level security
-columns live on identity.User since that phase.
+User-level security columns live on identity.User.
 """
 
 from __future__ import annotations

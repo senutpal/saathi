@@ -42,7 +42,7 @@ def _recency(entry: EducationEntry | WorkEntry) -> tuple[date, date]:
 def build_cv_context(user: User) -> dict | None:
     """Data dict for CV themes, or None when there is nothing to render.
 
-    Strict guard (ADR-020): needs a saved profile row AND at least one
+    Strict guard: needs a saved profile row AND at least one
     education/work entry; callers show the 409 warning page on None.
     """
     prof = user.profile

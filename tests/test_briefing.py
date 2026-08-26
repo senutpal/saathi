@@ -139,12 +139,7 @@ def test_greeting_tracks_local_time_of_day(session, make_user):
 
 
 def test_seam_flags_true_once_pack_a_tables_landed(session, make_user):
-    """P10's metadata probes flip permanently once P11 models register.
-
-    (The pre-P11 variant simulated absence via db.Table injection; injecting
-    'habits' now collides with the real mapper, so the assertion direction
-    inverts — flags must be True from here on.)
-    """
+    """Metadata probes flip permanently once models register."""
     user = make_user()
 
     data = briefing.build_briefing(user.id, now_fn=clock_at(ist(12)))
@@ -202,12 +197,10 @@ def test_dashboard_stays_within_query_budget(app, logged_in_client, session):
         event.remove(db.engine, "before_cursor_execute", count_hook)
 
     assert response.status_code == 200
-    # P10 baseline was 12; P11 cards add ~4 (birthdays 1, habits+logs 2,
-    # mood 1) — ADR-029 pins the ceiling at 18 until the P14 perf pass.
     assert len(statements) <= 18, f"dashboard issued {len(statements)} queries"
 
 
-# --- P11 pack-A cards --------------------------------------------------------
+# --- Life cards -------------------------------------------------------------
 
 
 def test_birthday_card_renders_contact_inside_window(logged_in_client, session):

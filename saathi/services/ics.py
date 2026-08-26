@@ -1,6 +1,6 @@
-"""RFC 5545 feed builder for the per-user ICS subscription (B14).
+"""RFC 5545 feed builder for the per-user ICS subscription.
 
-Recurrences are materialized rows (ADR-003), so RRULE is never emitted —
+Recurrences are materialized rows, so RRULE is never emitted —
 subscribers would double-book every repeat. Naive-UTC storage re-attaches
 timezone.utc directly: RFC 5545 Z-form is a relabeling, not a conversion.
 """

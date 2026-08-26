@@ -128,10 +128,10 @@ def log_action(
     details: str | None = None,
     event_id: int | None = None,
 ) -> None:
-    """Queue an ActivityLog row (ADR-015 shape) on the current transaction; caller commits.
+    """Queue an ActivityLog row on the current transaction; caller commits.
 
-    Same-transaction rule (B08 pitfall #8): an audit row must live or die with
-    the mutation it describes. Verbs come from the B08 VOCAB set.
+    Same-transaction rule: an audit row must live or die with the mutation
+    it describes.
     """
     db.session.add(
         ActivityLog(

@@ -56,9 +56,9 @@ def init_extensions(app: Flask) -> None:
             return None
         # Global kill switch ("log out everywhere"): every cookie carries a
         # login_ts stamp (set by auth.finish_login); any cookie predating the
-        # user's session_invalid_before — or lacking the stamp entirely, e.g.
-        # pre-P13 cookies — resolves to an anonymous request. Runs here because
-        # the loader executes on every authenticated request.
+        # user's session_invalid_before (or lacking the stamp entirely)
+        # resolves to an anonymous request. Runs here because the loader
+        # executes on every authenticated request.
         ts = session.get("login_ts")
         invalid_before = user.session_invalid_before or datetime.min
         if ts is None or datetime.fromtimestamp(ts, tz=UTC).replace(tzinfo=None) < invalid_before:

@@ -257,7 +257,7 @@ def _send_cv_export(name: str, payload: bytes, extension: str, mime: str, theme:
     """Persist an id-addressable copy under uploads/cv/<uid>/ then stream the bytes.
 
     Storage uses a uuid name (never the pretty one); the Upload row + audit log
-    share the commit so a rollback cannot leave phantom artifacts (ADR-018).
+    share the commit so a rollback cannot leave phantom artifacts.
     """
     folder = Path(current_app.config["UPLOAD_FOLDER"]) / "cv" / str(current_user.id)
     folder.mkdir(parents=True, exist_ok=True)

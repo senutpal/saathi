@@ -1,6 +1,4 @@
-# COCOMO Sizing & Estimation Recalculation (Real Metrics)
-
-> **Course Deliverable artifact**: Recomputed COCOMO Basic & Intermediate models based on real LOC measured at phase P16.
+> **Course Deliverable artifact**: Recomputed COCOMO Basic & Intermediate models based on real LOC.
 
 ## 1. Measured Codebase Sizing
 

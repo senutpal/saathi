@@ -2,8 +2,7 @@
 
 Backup codes follow OWASP MFA / NIST 800-63B §5.1.2 "look-up secret"
 practice: a small set of opaque random single-use codes stored only as
-SHA-256 hashes, riding behind the P13 lockout (32-bit codes are below the
-no-KDF threshold precisely because brute force is capped elsewhere).
+SHA-256 hashes, riding behind the lockout module.
 """
 
 from __future__ import annotations

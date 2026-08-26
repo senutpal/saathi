@@ -1,4 +1,4 @@
-"""P09 web-search coverage — every outbound HTTP path mocked, zero real network."""
+"""Web search coverage: every outbound HTTP path mocked, zero real network."""
 
 from __future__ import annotations
 

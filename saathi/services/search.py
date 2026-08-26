@@ -85,7 +85,7 @@ def _cache_put(
     action: str = "",
 ) -> None:
     """Upsert the payload and prune ancient rows in ONE transaction, so the
-    audit row written alongside shares its fate (ADR-018 same-tx rule)."""
+    audit row written alongside shares its fate."""
     fields: dict[str, object] = {_CACHE_KEY_FIELD[model]: key}
     if query_text:
         fields["query_text"] = query_text[:200]

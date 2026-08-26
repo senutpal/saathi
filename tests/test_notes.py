@@ -394,7 +394,7 @@ def test_trash_actions_of_a_are_invisible_to_user_b(logged_in_client, other_clie
     assert "Not yours" not in other_client.get("/notes/trash").data.decode()
 
 
-# --- S8 activity hooks -------------------------------------------------------
+# --- Activity hooks -----------------------------------------------------------
 
 
 def test_lifecycle_writes_full_audit_trail_newest_first(logged_in_client, session):

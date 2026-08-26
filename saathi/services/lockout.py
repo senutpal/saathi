@@ -1,11 +1,7 @@
 """Per-account login lockout over the login_attempts ledger.
 
-Division of labor (ADR-017): flask-limiter is the fast IP-based brake
-(5/min per client); this is the slow per-account counter that works across
-IPs (5 failures / 15 rolling minutes). Both stay on — they answer different
-attacks. The ledger is keyed on the lowercased submitted email only, which
-means an attacker can deliberately lock a victim out (anti-DoS trade-off,
-accepted for course scope and documented in the report; B16 §6).
+flask-limiter is the fast IP-based brake (5/min per client); this is the slow
+per-account counter that works across IPs (5 failures / 15 rolling minutes).
 """
 
 from __future__ import annotations

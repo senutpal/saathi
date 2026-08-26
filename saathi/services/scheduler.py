@@ -1,6 +1,6 @@
 """Reminder ticker engine: idempotent claim-scan over due events.
 
-Design (ADR-003): SQLite is the durable queue — a single daemon thread (or the
+Design: SQLite is the durable queue - a single daemon thread (or the
 cron-hosted /tick endpoint) repeatedly claims due rows with a conditional
 UPDATE whose rowcount is the race winner's proof. Restart catch-up and
 exactly-once firing fall out of that claim for free.

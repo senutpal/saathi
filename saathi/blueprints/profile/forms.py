@@ -56,7 +56,7 @@ class ProfileForm(FlaskForm):
             raise ValidationError("Year must be 1900 or later.")
 
     def validate_phone(self, field: object) -> None:
-        # Charset allowlist only (ADR-020): rejects letters, never a valid format.
+        # Charset allowlist only: rejects letters, never a valid format.
         if field.data and not all(PHONE_CHARS.fullmatch(ch) for ch in field.data):
             raise ValidationError("Phone may contain digits, spaces and + - ( ) . only.")
 
