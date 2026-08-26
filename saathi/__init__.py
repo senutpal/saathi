@@ -48,6 +48,7 @@ def register_blueprints(app: Flask) -> None:
         profile,
         public,
         search,
+        settings,
     )
 
     app.register_blueprint(main.bp)
@@ -66,6 +67,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(expenses.bp)
     app.register_blueprint(backup.bp)
     app.register_blueprint(public.bp)
+    app.register_blueprint(settings.bp)
 
 
 def register_error_handlers(app: Flask) -> None:

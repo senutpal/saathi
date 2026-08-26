@@ -36,6 +36,7 @@ FILTER_FAMILIES: list[tuple[str, str]] = [
     ("expense_", "Expenses"),
     ("backup_", "Backup"),
     ("share_updated", "Sharing"),
+    ("settings_updated", "Settings"),
     ("login", "Sign-ins"),
     ("cv_export", "CV exports"),
     ("profile_updated", "Profile edits"),

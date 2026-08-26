@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Settings - Saathi{% endblock %}
+{% block header %}Settings{% endblock %}
+{% block content %}
+<h2 class="mb-6 font-semibold tracking-tight">Settings</h2>
+
+<section class="rounded-lg border border-border bg-card p-6" aria-label="Calendar subscription">
+  <h3 class="text-sm font-medium">Calendar subscription (ICS)</h3>
+  <p class="mt-2 text-sm text-muted-foreground">
+    Subscribe from Google, Apple or Outlook Calendar to overlay your Saathi
+    reminders on your existing calendar.
+  </p>
+  <p class="mt-2 rounded-md border border-destructive/40 bg-muted p-3 text-xs text-muted-foreground">
+    Privacy: anyone holding this link can read your event titles and times —
+    treat it like a password. Regenerate it if it ever leaks; the old link stops
+    working immediately.
+  </p>
+  <div class="mt-4 flex flex-wrap items-center gap-3">
+    <code class="block max-w-full truncate rounded-md border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">{{ ics_url }}</code>
+    <form action="{{ url_for('settings.regenerate') }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit"
+              class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Regenerate link</button>
+    </form>
+  </div>
+  <div class="mt-4 text-xs text-muted-foreground">
+    <p class="font-medium text-foreground">How to subscribe</p>
+    <ul class="mt-1 list-disc space-y-0.5 pl-5">
+      <li>Google Calendar (web): Settings &rarr; Add calendar &rarr; From URL. It refreshes only about once a day — changes can take up to 24&nbsp;h to appear.</li>
+      <li>Apple Calendar: File &rarr; New Calendar Subscription (roughly hourly).</li>
+      <li>Outlook: Add calendar &rarr; Subscribe from web (every 1&ndash;4&nbsp;h).</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}

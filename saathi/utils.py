@@ -7,7 +7,7 @@ from datetime import UTC, date, datetime, time, timedelta
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
-from flask import abort, current_app
+from flask import abort, current_app, url_for
 from flask_login import current_user
 
 from .extensions import db
@@ -73,6 +73,17 @@ def month_bounds(raw: str | None) -> tuple[date, date]:
         first = today.replace(day=1)
     last = first.replace(day=calendar.monthrange(first.year, first.month)[1])
     return first, last + timedelta(days=1)
+
+
+def external_url(endpoint: str, **values: object) -> str:
+    """Absolute site URL for an endpoint; configured APP_URL wins over Host.
+
+    Behind proxies url_for(_external=True) reflects the request Host, so the
+    configured APP_URL (B17 pitfall P8) is preferred when present.
+    """
+    path = url_for(endpoint, **values)
+    base = current_app.config.get("APP_URL", "").rstrip("/")
+    return f"{base}{path}" if base else url_for(endpoint, **values, _external=True)
 
 
 def safe_next(target: str | None) -> str:

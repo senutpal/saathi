@@ -24,7 +24,7 @@ from flask_login import current_user
 from ...extensions import db
 from ...models import EducationEntry, Profile, Upload, WorkEntry
 from ...services.cv import build_cv_context, resolve_theme, slugify
-from ...utils import get_own_or_404, log_action
+from ...utils import external_url, get_own_or_404, log_action
 from . import bp
 from .forms import EducationForm, ProfileForm, WorkForm
 
@@ -74,20 +74,10 @@ def view() -> str:
 
 
 def _share_context(profile: Profile | None) -> tuple[str | None, str | None]:
-    """(public URL, QR data-URI) when sharing is on; APP_URL wins over Host.
-
-    Behind proxies url_for(_external=True) reflects the request Host, so the
-    configured APP_URL (B17 pitfall P8) is preferred when present.
-    """
+    """(public URL, QR data-URI) when sharing is on."""
     if profile is None or not profile.share_enabled or not profile.public_token:
         return None, None
-    path = url_for("public.card", token=profile.public_token)
-    base = current_app.config.get("APP_URL", "").rstrip("/")
-    share_url = (
-        f"{base}{path}"
-        if base
-        else url_for("public.card", token=profile.public_token, _external=True)
-    )
+    share_url = external_url("public.card", token=profile.public_token)
     # svg_data_uri keeps raw SVG out of the template — no |safe needed
     qr_uri = segno.make(share_url).svg_data_uri(scale=6, border=2)
     return share_url, qr_uri
