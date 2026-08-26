@@ -21,8 +21,8 @@ from ..models import ActivityLog, Event, Note, Notification
 from ..models.base import utcnow
 from ..utils import utc_to_ist_wall
 from .agenda import day_events
-from .daily import upcoming_birthdays as _fetch_upcoming_birthdays
 from .daily import habit_overview as _fetch_habit_overview
+from .daily import upcoming_birthdays as _fetch_upcoming_birthdays
 from .search import get_weather
 
 log = logging.getLogger(__name__)

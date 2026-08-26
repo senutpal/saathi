@@ -60,9 +60,7 @@ def habit_overview(user_id: int, today: date | None = None) -> list[dict]:
     """Per-habit grid/streak rows in two queries total (budget law)."""
     day = today or ist_today()
     habits = list(
-        db.session.scalars(
-            select(Habit).where(Habit.user_id == user_id).order_by(Habit.id)
-        )
+        db.session.scalars(select(Habit).where(Habit.user_id == user_id).order_by(Habit.id))
     )
     if not habits:
         return []
