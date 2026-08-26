@@ -53,6 +53,37 @@ def test_export_streams_unicode_attachment(session, logged_in_client):
     assert "Renée ✉" in raw  # ensure_ascii=False keeps unicode literal
 
 
+def test_share_state_is_never_exported_nor_trusted_on_import(session, make_user):
+    """Live tokens must not travel: UNIQUE collision + cross-account squatting."""
+    from saathi.models import Profile
+    from saathi.services.backup import SCHEMA_VERSION
+
+    alice = make_user(username="alice", email="alice@example.com")
+    profile = Profile(user_id=alice.id, full_name=alice.username)
+    profile.public_token = "live-token-abc"
+    profile.share_enabled = True
+    db.session.add(profile)
+    db.session.commit()
+
+    payload = export_payload(db.session.get(User, alice.id))
+    exported = json.dumps(payload)
+    assert "live-token-abc" not in exported
+    assert "share_enabled" not in exported
+
+    bob = make_user(username="bob", email="bob@example.com")
+    hostile = {
+        "schema": SCHEMA_VERSION,
+        "tables": {
+            "profiles": [{"full_name": "X", "public_token": "squat", "share_enabled": True}]
+        },
+    }
+
+    apply_import(db.session.get(User, bob.id), hostile)
+
+    fresh = db.session.query(Profile).filter_by(full_name="X").one()
+    assert fresh.public_token is None and fresh.share_enabled is False
+
+
 def test_import_remaps_child_fks_and_forces_owner(session, make_user):
     alice = make_user(username="alice", email="alice@example.com")
     bob = make_user(username="bob", email="bob@example.com")

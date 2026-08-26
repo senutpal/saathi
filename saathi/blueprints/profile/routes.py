@@ -47,7 +47,8 @@ except ImportError:
 def _current_profile() -> Profile:
     prof = current_user.profile
     if prof is None:
-        prof = Profile(user_id=current_user.id)
+        # full_name is NOT NULL; username is the honest pre-edit placeholder
+        prof = Profile(user_id=current_user.id, full_name=current_user.username)
         db.session.add(prof)
     return prof
 

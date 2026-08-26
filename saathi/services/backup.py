@@ -55,6 +55,13 @@ TABLE_ORDER: tuple[type[db.Model], ...] = (
 # Columns whose value the importer derives itself (never read from payload).
 DERIVED_COLUMNS = frozenset({"id", "user_id"})
 
+# Per-table columns excluded from BOTH directions: a live share token copied
+# into another account would collide with its UNIQUE constraint and enable
+# cross-account link squatting; sharing is opt-in state, not portable content.
+STRIPPED_COLUMNS: dict[str, frozenset[str]] = {
+    "profiles": frozenset({"public_token", "share_enabled"}),
+}
+
 # Child FKs remapped through the fresh parent ids.
 FK_REMAPS: dict[str, tuple[str, ...]] = {
     "HabitLog": ("habit_id",),
@@ -90,8 +97,11 @@ def _rows_scoped(model: type[db.Model], user_id: int):
 
 
 def _serialize(row: db.Model) -> dict:
+    stripped = STRIPPED_COLUMNS.get(row.__tablename__, frozenset())
     out: dict = {}
     for column in row.__table__.columns:
+        if column.name in stripped:
+            continue
         value = getattr(row, column.name)
         if isinstance(value, (date, datetime)):
             out[column.name] = value.isoformat()
@@ -176,6 +186,7 @@ def apply_import(user, payload: dict) -> dict[str, int]:
             if not isinstance(rows, list):
                 raise ImportRejected(f"{model.__tablename__}: expected a list of rows")
             columns = {c.name: c for c in model.__table__.columns}
+            stripped = STRIPPED_COLUMNS.get(model.__tablename__, frozenset())
             fk_targets = FK_REMAPS.get(model.__name__, ())
             id_map: dict[int, int] = {}
             inserted: list[db.Model] = []
@@ -193,8 +204,11 @@ def apply_import(user, payload: dict) -> dict[str, int]:
                 if "user_id" in columns:
                     data["user_id"] = user.id
                 for name, column in columns.items():
-                    if name in DERIVED_COLUMNS:
+                    if name in DERIVED_COLUMNS or name in stripped:
                         continue
+                    raw = row.get(name)
+                    if raw is None and column.server_default is not None:
+                        continue  # absent stamps fall back to DB defaults
                     if name in fk_targets:
                         # parents precede children in TABLE_ORDER, so their
                         # id map exists right here; unresolved refs reject
