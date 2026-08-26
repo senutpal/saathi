@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from datetime import date
 
 from flask_wtf import FlaskForm
@@ -15,7 +14,8 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired, Length, Optional, ValidationError
 
-PHONE_CHARS = re.compile(r"[0-9+()\-\s.]")
+from ...utils import PHONE_CHARS
+
 MIN_BIRTH_YEAR = 1900
 
 

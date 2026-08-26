@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import UTC, date, datetime, time, timedelta
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
@@ -11,6 +12,8 @@ from flask_login import current_user
 
 from .extensions import db
 from .models import ActivityLog
+
+PHONE_CHARS = re.compile(r"[0-9+()\-\s.]")
 
 
 def local_zone() -> ZoneInfo:

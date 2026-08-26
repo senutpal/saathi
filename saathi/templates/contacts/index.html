@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Contacts — Saathi{% endblock %}
+{% block header %}Contacts{% endblock %}
+{% block content %}
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="lg:col-span-2" aria-label="Contact list">
+    <div class="mb-4 flex items-center justify-between">
+      <h2 class="font-semibold tracking-tight">Contacts</h2>
+      <p class="text-sm text-muted-foreground">{{ contacts|length }} saved.</p>
+    </div>
+
+    {% if contacts %}
+    <ul class="space-y-3">
+      {% for c in contacts %}
+      <li class="rounded-lg border border-border bg-card p-4">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-sm font-medium">{{ c.name }}</p>
+            <p class="mt-1 flex flex-wrap gap-x-3 text-xs tabular-nums text-muted-foreground">
+              {% if c.phone %}<span>{{ c.phone }}</span>{% endif %}
+              {% if c.email %}<span>{{ c.email }}</span>{% endif %}
+              {% if c.dob %}<span>Birthday {{ c.dob.strftime('%d %b') }}</span>{% endif %}
+            </p>
+            {% if c.notes %}<p class="mt-2 line-clamp-2 text-xs text-muted-foreground">{{ c.notes }}</p>{% endif %}
+          </div>
+          <div class="flex shrink-0 items-center gap-1">
+            <a href="{{ url_for('contacts.edit', contact_id=c.id) }}"
+               class="rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">Edit</a>
+            <form action="{{ url_for('contacts.delete', contact_id=c.id) }}" method="post" class="inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit"
+                      class="rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-destructive">Delete</button>
+            </form>
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-10 text-center">
+      <p class="text-sm font-medium">No contacts yet</p>
+      <p class="mt-1 text-sm text-muted-foreground">People and their birthdays live here.</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <section aria-label="Add contact">
+    <form action="{{ url_for('contacts.add') }}" method="post" class="rounded-lg border border-border bg-card p-6">
+      {{ form.hidden_tag() }}
+      <h3 class="text-sm font-medium">Add a contact</h3>
+      <div class="mt-4 space-y-3">
+        {{ form.name.label(for="name", class="text-xs font-medium text-muted-foreground") }}
+        {{ form.name(id="name", class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+        {{ form.phone.label(for="phone", class="text-xs font-medium text-muted-foreground") }}
+        {{ form.phone(id="phone", class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+        {{ form.email.label(for="email", class="text-xs font-medium text-muted-foreground") }}
+        {{ form.email(id="email", type="email", class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+        {{ form.dob.label(for="dob", class="text-xs font-medium text-muted-foreground") }}
+        {{ form.dob(id="dob", class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+        {{ form.notes.label(for="notes", class="text-xs font-medium text-muted-foreground") }}
+        {{ form.notes(id="notes", rows=3, class="flex w-full rounded-md border border-input bg-card px-3 py-2 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+      </div>
+      <button type="submit"
+              class="mt-4 inline-flex h-9 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Save contact</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

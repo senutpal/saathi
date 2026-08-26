@@ -1,7 +1,6 @@
 """Saathi core schema package — re-exports every model.
 
 Deferred tables (owned by their phase, do NOT create early):
-contacts / habits / habit_logs / moods / expenses -> P11 ·
 capsule_messages -> P12 · LoginAttempt / BackupCode -> P13.
 """
 
@@ -16,10 +15,12 @@ from .content import (
     WeatherCache,
 )
 from .identity import EducationEntry, Profile, User, WorkEntry
+from .life import Contact
 from .scheduling import Event, Notification
 
 __all__ = [
     "ActivityLog",
+    "Contact",
     "EducationEntry",
     "Event",
     "Note",

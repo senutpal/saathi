@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Edit contact — Saathi{% endblock %}
+{% block header %}Edit contact{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-xl">
+  <form action="{{ url_for('contacts.edit', contact_id=contact.id) }}" method="post"
+        class="rounded-lg border border-border bg-card p-6">
+    {{ form.hidden_tag() }}
+    <div class="space-y-3">
+      {{ form.name.label(for="name", class="text-xs font-medium text-muted-foreground") }}
+      {{ form.name(id="name", class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+      {{ form.phone.label(for="phone", class="text-xs font-medium text-muted-foreground") }}
+      {{ form.phone(id="phone", class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+      {{ form.email.label(for="email", class="text-xs font-medium text-muted-foreground") }}
+      {{ form.email(id="email", type="email", class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+      {{ form.dob.label(for="dob", class="text-xs font-medium text-muted-foreground") }}
+      {{ form.dob(id="dob", class="flex h-9 w-full rounded-md border border-input bg-card px-3 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+      {{ form.notes.label(for="notes", class="text-xs font-medium text-muted-foreground") }}
+      {{ form.notes(id="notes", rows=4, class="flex w-full rounded-md border border-input bg-card px-3 py-2 text-sm shadow-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring") }}
+    </div>
+    <div class="mt-4 flex items-center gap-2">
+      <button type="submit"
+              class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Save changes</button>
+      <a href="{{ url_for('contacts.index') }}"
+         class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
