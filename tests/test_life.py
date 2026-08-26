@@ -358,3 +358,67 @@ def test_money_garbage_raises_value_error(raw):
 
     with pytest.raises(ValueError):
         parse_to_cents(raw)
+
+
+def test_habits_require_login(client):
+    response = client.get("/habits")
+    assert response.status_code == 302
+    assert "/auth/login" in response.headers["Location"]
+
+
+def test_habits_add_success(logged_in_client, session):
+    response = logged_in_client.post("/habits/add", data={"name": "Drink Water", "color": "sky"})
+    assert response.status_code == 302
+    assert db.session.query(Habit).filter_by(name="Drink Water").count() == 1
+
+
+def test_habits_add_validation_error(logged_in_client, session):
+    response = logged_in_client.post("/habits/add", data={"name": ""})
+    assert response.status_code == 302
+    assert db.session.query(Habit).count() == 0
+
+
+def test_habits_delete_success(logged_in_client, session):
+    user = db.session.query(User).first()
+    row = _habit(user.id, name="Read")
+    response = logged_in_client.post(f"/habits/{row.id}/delete")
+    assert response.status_code == 302
+    assert db.session.query(Habit).count() == 0
+
+
+def test_habits_delete_idor(client, make_user, login, session):
+    alice = make_user(username="alice", email="alice@example.com")
+    make_user(username="bob", email="bob@example.com")
+    row = _habit(alice.id)
+    _login_as(client, login, "bob@example.com")
+    response = client.post(f"/habits/{row.id}/delete")
+    assert response.status_code == 404
+    assert db.session.get(Habit, row.id) is not None
+
+
+def test_expenses_require_login(client):
+    response = client.get("/expenses")
+    assert response.status_code == 302
+    assert "/auth/login" in response.headers["Location"]
+
+
+def test_expenses_delete_success(logged_in_client, session):
+    user = db.session.query(User).first()
+    row = Expense(user_id=user.id, amount_cents=100, spent_on=date.today(), category="fun")
+    db.session.add(row)
+    db.session.commit()
+    response = logged_in_client.post(f"/expenses/{row.id}/delete")
+    assert response.status_code == 302
+    assert db.session.query(Expense).count() == 0
+
+
+def test_mood_require_login(client):
+    response = client.get("/mood")
+    assert response.status_code == 302
+    assert "/auth/login" in response.headers["Location"]
+
+
+def test_mood_set_validation_error(logged_in_client, session):
+    response = logged_in_client.post("/mood/set", data={"score": "999"})
+    assert response.status_code == 302
+    assert db.session.query(Mood).count() == 0

@@ -5,9 +5,13 @@ from __future__ import annotations
 import json
 from datetime import date, datetime
 
+import pytest
+
 from saathi.extensions import db
 from saathi.models import ActivityLog, Contact, Event, Mood, Note, User
 from saathi.services.backup import ImportRejected, apply_import, export_payload
+
+pytestmark = pytest.mark.filterwarnings("ignore::ResourceWarning")
 
 
 def _seed_rich(alice_id: int) -> None:
@@ -218,3 +222,60 @@ def test_expenses_csv_uses_divmod_cells_and_bom(session, make_user, client, logi
     assert response.headers["Content-Type"].startswith("text/csv")
     assert body.startswith("\ufeffamount,currency,category")
     assert "\n9.99,INR,books,2026-08-26,'=cmd|' /c calc!A0" in body or "'=cmd" in body
+
+
+def test_backup_require_login_redirects_anonymous(client):
+    response = client.get("/backup")
+    assert response.status_code == 302
+    assert "/auth/login" in response.headers["Location"]
+
+
+def test_backup_index_renders(logged_in_client):
+    response = logged_in_client.get("/backup")
+    assert response.status_code == 200
+    assert b"backup" in response.data.lower()
+
+
+def test_import_json_no_file_redirects(logged_in_client):
+    response = logged_in_client.post("/import.json", data={})
+    assert response.status_code == 302
+
+
+def test_import_json_too_large_aborts_413(logged_in_client):
+    import io
+    import warnings
+
+    warnings.simplefilter("ignore", ResourceWarning)
+    big_file = (io.BytesIO(b"[" * (10 * 1024 * 1024 + 10)), "big.json")
+    response = logged_in_client.post("/import.json", data={"file": big_file})
+    assert response.status_code == 413
+
+
+def test_import_json_invalid_json_redirects(logged_in_client):
+    import io
+
+    bad_file = (io.BytesIO(b"not json"), "bad.json")
+    response = logged_in_client.post("/import.json", data={"file": bad_file})
+    assert response.status_code == 302
+
+
+def test_import_json_rejected_import_redirects(logged_in_client):
+    import io
+    import json
+
+    payload = {"tables": {}}
+    bad_file = (io.BytesIO(json.dumps(payload).encode()), "bad.json")
+    response = logged_in_client.post("/import.json", data={"file": bad_file})
+    assert response.status_code == 302
+
+
+def test_import_json_success_redirects(logged_in_client):
+    import io
+    import json
+
+    from saathi.services.backup import SCHEMA_VERSION
+
+    payload = {"schema": SCHEMA_VERSION, "tables": {"notes": []}}
+    good_file = (io.BytesIO(json.dumps(payload).encode()), "good.json")
+    response = logged_in_client.post("/import.json", data={"file": good_file})
+    assert response.status_code == 302

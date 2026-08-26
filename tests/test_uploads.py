@@ -380,3 +380,23 @@ def test_gallery_orders_newest_first_and_shows_quota(logged_in_client):
     assert page.status_code == 200
     assert html.index("newer.txt") < html.index("older-one.png")
     assert "of 50.0 MiB used" in html
+
+
+def test_download_missing_file_aborts_404(logged_in_client, app):
+    upload(logged_in_client, png_bytes(), "missing.png")
+    with app.app_context():
+        row = db.session.query(Upload).filter_by(original_filename="missing.png").one()
+        fid = row.id
+        svc.stored_path(row.user_id, row.stored_filename).unlink()
+    response = logged_in_client.get(f"/files/{fid}/download")
+    assert response.status_code == 404
+
+
+def test_thumb_missing_file_aborts_404(logged_in_client, app):
+    upload(logged_in_client, png_bytes(), "missing.png")
+    with app.app_context():
+        row = db.session.query(Upload).filter_by(original_filename="missing.png").one()
+        fid = row.id
+        svc.thumb_path(row.user_id, row.stored_filename).unlink()
+    response = logged_in_client.get(f"/files/{fid}/thumb")
+    assert response.status_code == 404

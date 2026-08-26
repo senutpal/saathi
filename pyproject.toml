@@ -52,3 +52,17 @@ select = ["E", "W", "F", "I", "UP", "B"]
 testpaths = ["tests"]
 pythonpath = ["."]
 filterwarnings = ["error"]
+
+[tool.coverage.run]
+branch = true
+source = ["saathi"]
+omit = ["saathi/services/scheduler.py"]
+
+[tool.coverage.report]
+fail_under = 70
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__",
+]

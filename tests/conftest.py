@@ -21,6 +21,7 @@ def app(tmp_path):
         db.create_all()
     yield app
     with app.app_context():
+        db.session.remove()
         db.drop_all()
         for engine in db.engines.values():
             engine.dispose()

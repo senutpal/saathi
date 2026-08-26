@@ -1,5 +1,7 @@
 # saathi
 
+![CI](https://github.com/senutpal/saathi/actions/workflows/ci.yml/badge.svg)
+
 Saathi ("Here I Am") — a multi-user personal-assistant web app built with Flask, server-rendered.
 
 ## Run (dev)
