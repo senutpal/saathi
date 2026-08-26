@@ -4,6 +4,22 @@
 {% block content %}
 <h2 class="mb-6 font-semibold tracking-tight">Settings</h2>
 
+<section class="mb-6 rounded-lg border border-border bg-card p-6" aria-label="Security">
+  <div class="flex items-center justify-between gap-3">
+    <h3 class="text-sm font-medium">Sign-in &amp; security</h3>
+    <span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium {{ 'text-emerald-600' if current_user.twofa_enabled else 'text-muted-foreground' }}">
+      2FA {{ 'on' if current_user.twofa_enabled else 'off' }}
+    </span>
+  </div>
+  <p class="mt-2 text-sm text-muted-foreground">
+    Two-factor authentication, backup codes and your recent sign-ins.
+  </p>
+  <a href="{{ url_for('settings.security') }}"
+     class="mt-4 inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+    Open security settings
+  </a>
+</section>
+
 <section class="rounded-lg border border-border bg-card p-6" aria-label="Calendar subscription">
   <h3 class="text-sm font-medium">Calendar subscription (ICS)</h3>
   <p class="mt-2 text-sm text-muted-foreground">

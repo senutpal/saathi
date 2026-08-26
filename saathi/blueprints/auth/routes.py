@@ -11,12 +11,14 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from ...extensions import db, limiter
 from ...models import LoginRecord, User
 from ...models.base import utcnow
+from ...services import lockout, twofa
 from ...utils import log_action, safe_next
-from . import bp, lockout
-from .forms import LoginForm, RegisterForm
+from . import bp
+from .forms import LoginForm, RegisterForm, TwoFaLoginForm
 
 DUMMY_HASH = generate_password_hash("not-a-real-password-at-all")
 LOGIN_FAILED_MESSAGE = "Invalid email or password"
+PRE_2FA_TTL = 300  # seconds a half-session may wait for its code
 
 
 def finish_login(user: User) -> Response:
@@ -90,6 +92,13 @@ def login() -> str | Response:
             check_password_hash(DUMMY_HASH, form.password.data)
             ok = False
         if ok and user is not None:
+            if user.twofa_enabled:
+                # Password alone is not a login: park the half-session and
+                # demand the second factor (B16 §1.3).
+                session.clear()
+                session["pre_2fa_user_id"] = user.id
+                session["pre_2fa_at"] = time.time()
+                return redirect(url_for("auth.two_fa"))
             lockout.clear_failures(email)
             return finish_login(user)
         flash(LOGIN_FAILED_MESSAGE, "error")
@@ -99,6 +108,38 @@ def login() -> str | Response:
         # formdata={} defeats FlaskForm's auto-bind of request.form.
         form = LoginForm(formdata={})
     return render_template("auth/login.html", form=form, next_target=next_target)
+
+
+@bp.route("/login/two-fa", methods=["GET", "POST"])
+@limiter.limit("5 per minute", methods=["POST"])
+def two_fa() -> str | Response:
+    """Second factor after a good password; no pre_2fa stash -> login page."""
+    uid = session.get("pre_2fa_user_id")
+    if not uid or time.time() - session.get("pre_2fa_at", 0) > PRE_2FA_TTL:
+        session.pop("pre_2fa_user_id", None)
+        return redirect(url_for("auth.login"))
+    user = db.session.scalar(db.select(User).where(User.id == uid))
+    if user is None:
+        session.pop("pre_2fa_user_id", None)
+        return redirect(url_for("auth.login"))
+    # the brute-force door stays shut here too: a locked account never sees
+    # the code form again (same uniform message as the login page)
+    if lockout.is_locked(user.email):
+        flash(LOGIN_FAILED_MESSAGE, "error")
+        return redirect(url_for("auth.login"))
+    form = TwoFaLoginForm()
+    if form.validate_on_submit():
+        raw = form.code.data.strip().upper()
+        if twofa.verify_login_code(user, raw):
+            lockout.clear_failures(user.email)
+            # finish_login's session.clear() also drops the pre_2fa keys
+            return finish_login(user)
+        # a 6-digit keyspace is brute-forceable without ledger accounting
+        lockout.record_failure(user.email)
+        # identical wording whether TOTP or backup failed — never reveal
+        # which factor mismatched
+        flash("That code didn't match.", "error")
+    return render_template("auth/two_fa.html", form=form)
 
 
 @bp.post("/logout")

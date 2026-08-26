@@ -2,10 +2,10 @@
 
 from datetime import UTC, datetime, timedelta
 
-from saathi.blueprints.auth import lockout
 from saathi.extensions import db
 from saathi.models import LoginAttempt
 from saathi.models.base import utcnow
+from saathi.services import lockout
 
 
 def seed_failures(email: str, count: int, *, at: datetime | None = None) -> None:

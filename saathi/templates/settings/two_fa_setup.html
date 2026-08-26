@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "macros.html" import field %}
+{% block title %}Set up 2FA - Saathi{% endblock %}
+{% block header %}Set up two-factor authentication{% endblock %}
+{% block content %}
+<div class="mx-auto mt-10 w-full max-w-md space-y-6">
+  <section class="rounded-lg border border-border bg-card p-6">
+    <h3 class="text-sm font-medium">1. Scan with your authenticator app</h3>
+    <p class="mt-2 text-sm text-muted-foreground">
+      Open Google Authenticator (or similar) and scan this code.
+    </p>
+    <div class="mt-4 flex justify-center rounded-md border border-border bg-white p-4">
+      {# inline SVG data-URI: CSP allows img-src data: #}
+      <img src="{{ qr_uri }}" width="{{ 33 * 4 + 2 * 2 * 4 }}" height="{{ 33 * 4 + 2 * 2 * 4 }}"
+           alt="QR code with the Saathi two-factor secret" class="h-44 w-44">
+    </div>
+  </section>
+
+  <section class="rounded-lg border border-border bg-card p-6">
+    <h3 class="text-sm font-medium">Can't scan? Enter the key manually</h3>
+    <code class="mt-3 block break-all rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm tracking-wider">{{ manual_secret }}</code>
+  </section>
+
+  <section class="rounded-lg border border-border bg-card p-6">
+    <h3 class="text-sm font-medium">2. Confirm the current 6-digit code</h3>
+    <form action="{{ url_for('settings.two_fa_confirm') }}" method="post" class="mt-3 space-y-4">
+      {{ form.hidden_tag() }}
+      {{ field(form.code, placeholder="123456") }}
+      <button type="submit"
+              class="inline-flex h-9 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        Verify and turn on 2FA
+      </button>
+    </form>
+    <p class="mt-3 text-xs text-muted-foreground">
+      Codes rotate every 30 seconds; the previous one is also accepted for
+      clock drift. After 5 failed tries the setup restarts.
+    </p>
+  </section>
+
+  <p class="text-center text-sm">
+    <a href="{{ url_for('settings.security') }}" class="underline underline-offset-4 text-muted-foreground hover:text-foreground">Cancel</a>
+  </p>
+</div>
+{% endblock %}

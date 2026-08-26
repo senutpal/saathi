@@ -15,9 +15,9 @@ from datetime import datetime, timedelta
 
 from sqlalchemy import delete, func, select
 
-from ...extensions import db
-from ...models import LoginAttempt
-from ...models.base import utcnow
+from ..extensions import db
+from ..models import LoginAttempt
+from ..models.base import utcnow
 
 LOCKOUT_LIMIT = 5
 LOCKOUT_WINDOW = timedelta(minutes=15)

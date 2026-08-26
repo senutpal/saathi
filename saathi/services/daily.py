@@ -18,6 +18,7 @@ from ..extensions import db
 from ..models import CapsuleMessage, Contact, Event, Habit, HabitLog, Mood, Notification, User
 from ..models.base import utcnow
 from ..utils import ist_day_bounds_utc, ist_to_utc_naive, ist_today, utc_to_ist_wall
+from .lockout import prune_old_attempts
 from .mailer import send_email
 
 log = logging.getLogger(__name__)
@@ -333,4 +334,5 @@ def maybe_daily_chores(*, now_fn: Callable[[], datetime] = utcnow) -> dict:
     return {
         "digests": sum(send_digest(user, now_fn=now_fn) for user in users),
         "capsules_opened": open_due_capsules(now_fn=now_fn),
+        "login_rows_pruned": prune_old_attempts(now_fn=now_fn),
     }

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% from "macros.html" import field %}
+{% block title %}Security - Saathi{% endblock %}
+{% block header %}Security{% endblock %}
+{% block content %}
+<h2 class="mb-6 font-semibold tracking-tight">Sign-in &amp; security</h2>
+
+<section class="rounded-lg border border-border bg-card p-6" aria-label="Two-factor authentication">
+  <div class="flex items-center justify-between gap-3">
+    <h3 class="text-sm font-medium">Two-factor authentication</h3>
+    <span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium {{ 'text-emerald-600' if current_user.twofa_enabled else 'text-muted-foreground' }}">
+      {{ 'On' if current_user.twofa_enabled else 'Off' }}
+    </span>
+  </div>
+  {% if not current_user.twofa_enabled %}
+  <p class="mt-2 text-sm text-muted-foreground">
+    Add a second factor with any authenticator app (Google Authenticator, Authy,
+    1Password&hellip;). After your password, you'll type a rotating 6-digit code.
+  </p>
+  <form action="{{ url_for('settings.two_fa_enable') }}" method="post" class="mt-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit"
+            class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      Set up 2FA
+    </button>
+  </form>
+  {% else %}
+  <p class="mt-2 text-sm text-muted-foreground">
+    Codes are required at every sign-in. You have
+    <strong class="text-foreground">{{ unused_codes }}</strong> unused backup
+    code{{ 's' if unused_codes != 1 }} left. Regenerating replaces the whole set.
+  </p>
+  <div class="mt-4 flex flex-wrap items-start gap-6">
+    <details class="w-full max-w-sm rounded-md border border-destructive/40 p-4">
+      <summary class="cursor-pointer text-sm font-medium text-destructive">Turn off 2FA</summary>
+      <form action="{{ url_for('settings.two_fa_disable') }}" method="post" class="mt-3 space-y-3">
+        {{ disable_form.hidden_tag() }}
+        {{ field(disable_form.password, placeholder="current password") }}
+        {{ field(disable_form.code, placeholder="123 456 or backup code") }}
+        <button type="submit"
+                class="inline-flex h-9 items-center justify-center rounded-md border border-destructive/60 px-4 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          Turn off 2FA
+        </button>
+      </form>
+    </details>
+    <form action="{{ url_for('settings.backup_codes_regenerate') }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit"
+              class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        Regenerate backup codes
+      </button>
+    </form>
+  </div>
+  {% endif %}
+</section>
+
+<section class="mt-6 rounded-lg border border-border bg-card p-6" aria-label="Recent sign-ins">
+  <div class="flex items-center justify-between gap-3">
+    <h3 class="text-sm font-medium">Devices &amp; sign-ins</h3>
+    <form action="{{ url_for('settings.logout_everywhere') }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit"
+              class="inline-flex h-8 items-center justify-center rounded-md border border-border bg-card px-3 text-xs font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        Log out everywhere
+      </button>
+    </form>
+  </div>
+  <p class="mt-2 text-xs text-muted-foreground">
+    Saathi signs you out of all devices at once — per-device revocation needs
+    server-side session storage and is listed as future work.
+  </p>
+  {% if recent_logins %}
+  <div class="mt-4 overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="text-xs text-muted-foreground">
+        <tr>
+          <th class="pb-2 pr-4 font-medium">When</th>
+          <th class="pb-2 pr-4 font-medium">IP address</th>
+          <th class="pb-2 font-medium">Browser</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in recent_logins %}
+        <tr class="border-t border-border {{ 'font-medium' if loop.first else 'text-muted-foreground' }}">
+          <td class="py-2 pr-4">{{ row.at | ist }}{{ ' · this device' if loop.first }}</td>
+          <td class="py-2 pr-4">{{ row.ip }}</td>
+          <td class="max-w-[16rem] truncate py-2">{{ row.user_agent }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="mt-4 text-sm text-muted-foreground">No sign-ins recorded yet.</p>
+  {% endif %}
+</section>
+
+<p class="mt-6 text-sm">
+  <a href="{{ url_for('settings.index') }}" class="underline underline-offset-4 text-muted-foreground hover:text-foreground">&larr; Back to Settings</a>
+</p>
+{% endblock %}

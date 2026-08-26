@@ -97,3 +97,20 @@ def test_cookie_older_than_invalidation_stamp_is_dead(fresh) -> None:
         db.session.commit()
 
     assert fresh.get("/").status_code == 302
+
+
+def test_security_page_lists_signins_and_kill_switch(logged_in_client) -> None:
+    response = logged_in_client.get("/settings/security")
+
+    assert response.status_code == 200
+    assert b"Two-factor authentication" in response.data
+    assert b"Log out everywhere" in response.data
+    # the login that created this very session is already on the list
+    assert b"127.0.0.1" in response.data or b"localhost" in response.data
+
+
+def test_logout_everywhere_post_ends_this_session(logged_in_client, session) -> None:
+    response = logged_in_client.post("/settings/logout-everywhere")
+
+    assert response.status_code == 302
+    assert logged_in_client.get("/").status_code == 302

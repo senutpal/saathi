@@ -38,3 +38,28 @@ class LoginForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("Sign in")
+
+
+class TwoFaConfirmForm(FlaskForm):
+    """Second step of setup: first code from the freshly scanned secret."""
+
+    code = StringField("6-digit code", validators=[DataRequired(), Length(min=6, max=8)])
+    submit = SubmitField("Verify and turn on 2FA")
+
+
+class TwoFaLoginForm(FlaskForm):
+    """At /login/two-fa: accepts a TOTP or a backup code in one box."""
+
+    code = StringField(
+        "Authenticator code or backup code",
+        validators=[DataRequired(), Length(min=6, max=16)],
+    )
+    submit = SubmitField("Verify")
+
+
+class TwoFaDisableForm(FlaskForm):
+    """Turning 2FA off needs both factors — a hijacked session alone can't."""
+
+    password = PasswordField("Current password", validators=[DataRequired()])
+    code = StringField("Current authenticator or backup code", validators=[DataRequired()])
+    submit = SubmitField("Turn off 2FA")
