@@ -128,10 +128,24 @@
     </section>
     {% endif %}
 
-    {% if not has_moods %}
-    <section class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-6 text-center" aria-label="Mood journal coming soon">
-      <h3 class="text-sm font-medium">Mood journal</h3>
-      <p class="mt-1 text-xs text-muted-foreground">Daily mood trends arrive in a future update.</p>
+    {% if has_moods %}
+    <section class="rounded-lg border border-border bg-card p-6" aria-label="Mood journal">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-medium">Mood</h3>
+        <a href="{{ url_for('mood.index') }}" class="text-xs text-muted-foreground transition-colors hover:text-foreground">Journal</a>
+      </div>
+      {% if mood_card.scores %}
+      <div class="mt-4 flex items-center gap-3">
+        {% from "partials/_sparkline.html" import sparkline %}
+        {{ sparkline(mood_card.scores, w=160) }}
+        <span class="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-medium tabular-nums text-muted-foreground">
+          avg {{ mood_card.avg }}/5
+        </span>
+      </div>
+      <p class="mt-2 text-xs text-muted-foreground">Last 14 days · {{ mood_card.scores|length }} entr{{ 'y' if mood_card.scores|length == 1 else 'ies' }}</p>
+      {% else %}
+      <p class="mt-4 text-sm text-muted-foreground">Log a daily score to see your trend here.</p>
+      {% endif %}
     </section>
     {% endif %}
   </div>

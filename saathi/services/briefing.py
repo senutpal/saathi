@@ -22,6 +22,7 @@ from ..models.base import utcnow
 from ..utils import utc_to_ist_wall
 from .agenda import day_events
 from .daily import habit_overview as _fetch_habit_overview
+from .daily import mood_summary as _fetch_mood_summary
 from .daily import upcoming_birthdays as _fetch_upcoming_birthdays
 from .search import get_weather
 
@@ -93,6 +94,15 @@ def _habit_rows(user_id: int, today: date) -> list[dict]:
     return _fetch_habit_overview(user_id, today)[:HABIT_CARD_LIMIT]
 
 
+def _mood_card(user_id: int) -> dict:
+    """Trailing-14-day scores + average; one query, empty-safe."""
+    if "moods" not in db.metadata.tables:
+        return {"scores": [], "avg": None}
+    scores = _fetch_mood_summary(user_id)
+    avg = round(sum(scores) / len(scores), 1) if scores else None
+    return {"scores": scores, "avg": avg}
+
+
 def _weather() -> dict | None:
     city = current_app.config.get("WEATHER_CITY", "")
     if not city:
@@ -135,6 +145,7 @@ def build_briefing(user_id: int, *, now_fn: Callable[[], datetime] = utcnow) -> 
         "unread_count": _safe("unread", lambda: _unread_count(user_id), 0),
         "birthdays": _safe("birthdays", lambda: _upcoming_birthdays(user_id, today), []),
         "habit_rows": _safe("habit_rows", lambda: _habit_rows(user_id, today), []),
+        "mood_card": _safe("mood_card", lambda: _mood_card(user_id), {"scores": [], "avg": None}),
         "recent_notes": _safe("recent_notes", lambda: _recent_notes(user_id), []),
         "weather": _safe("weather", _weather, None),
         "on_this_day": _safe("on_this_day", lambda: _on_this_day(user_id, now), None),

@@ -1,0 +1,13 @@
+{% macro sparkline(scores, w=120, h=30, pad=4) -%}
+{%- set n = scores|length -%}
+<svg viewBox="0 0 {{ w }} {{ h }}" class="inline-block text-sky-400 dark:text-sky-300" role="img" aria-label="mood trend">
+{%- if n == 1 -%}<circle cx="{{ w/2 }}" cy="{{ h/2 }}" r="2.5" fill="currentColor"/>
+{%- elif n > 1 -%}{%- set pts = [] -%}
+  {%- for s in scores -%}
+    {%- set x = pad + loop.index0 * (w - 2 * pad) / (n - 1) -%}
+    {%- set y = h - pad - (s - 1) * (h - 2 * pad) / 4 -%}
+    {%- set _ = pts.append('%.1f,%.1f'|format(x, y)) -%}
+  {%- endfor -%}
+  <polyline points="{{ pts|join(' ') }}" fill="none" stroke="currentColor" stroke-width="1.5"/>
+{%- endif -%}</svg>
+{%- endmacro %}

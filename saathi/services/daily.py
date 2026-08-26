@@ -14,7 +14,7 @@ from flask import current_app
 from sqlalchemy import select
 
 from ..extensions import db
-from ..models import Contact, Event, Habit, HabitLog
+from ..models import Contact, Event, Habit, HabitLog, Mood
 from ..utils import ist_to_utc_naive, ist_today
 
 log = logging.getLogger(__name__)
@@ -128,6 +128,19 @@ def _next_anniversary(dob: date, today: date) -> date | None:
         if cand >= today:
             return cand
     return None
+
+
+def mood_summary(user_id: int, *, days: int = 14, today: date | None = None) -> list[int]:
+    """Scores oldest→newest over the trailing window; one query."""
+    day = today or ist_today()
+    since = day - timedelta(days=days - 1)
+    return list(
+        db.session.scalars(
+            select(Mood.score)
+            .where(Mood.user_id == user_id, Mood.mood_date >= since)
+            .order_by(Mood.mood_date, Mood.id)
+        )
+    )
 
 
 def maybe_sync_birthday_events(today: date | None = None) -> int:

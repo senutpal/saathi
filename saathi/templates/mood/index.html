@@ -8,7 +8,11 @@
       <div>
         <h2 class="font-semibold tracking-tight">{{ month_label }}</h2>
         {% if average is not none %}
-        <p class="text-sm text-muted-foreground">Average {{ average }} / 5 across {{ entries|length }} entr{{ 'y' if entries|length == 1 else 'ies' }}.</p>
+        <p class="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+          Average {{ average }} / 5 across {{ entries|length }} entr{{ 'y' if entries|length == 1 else 'ies' }}
+          {% from "partials/_sparkline.html" import sparkline %}
+          {{ sparkline(scores) }}
+        </p>
         {% else %}
         <p class="text-sm text-muted-foreground">No entries this month yet.</p>
         {% endif %}
