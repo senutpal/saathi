@@ -7,7 +7,7 @@ Never imported by app code. Run from the repo root:
 from __future__ import annotations
 
 import argparse
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from io import BytesIO
 
 from flask import Flask
@@ -18,6 +18,7 @@ from saathi import create_app
 from saathi.extensions import db
 from saathi.models import (
     ActivityLog,
+    CapsuleMessage,
     Contact,
     EducationEntry,
     Event,
@@ -33,6 +34,7 @@ from saathi.models import (
     utcnow,
 )
 from saathi.services.uploads import save_upload
+from saathi.utils import ist_to_utc_naive
 
 MARKER_EMAIL = "demo@saathi.app"
 ALREADY_SEEDED = "already seeded; pass --force to rebuild"
@@ -174,6 +176,7 @@ def run_seed(app: Flask, *, force: bool = False) -> str:
         db.session.commit()
         made = _demo_uploads(demo)
         _demo_life_rows(demo)
+        _demo_pack_b_rows(demo)
     files = ", ".join(made)
     return f"seeded {MARKER_EMAIL} / demo1234 (+1 alt user); files: {files}; reminder due in ~2 min"
 
@@ -250,6 +253,35 @@ def _demo_life_rows(user: User) -> None:
                 note=note or None,
             )
         )
+    db.session.commit()
+
+
+def _demo_pack_b_rows(user: User) -> None:
+    """Pack-B demo data: tomorrow-09:00 IST event + capsule for digest/ICS."""
+    from datetime import time as dtime
+
+    from saathi.utils import ist_today
+
+    opens_at = ist_to_utc_naive(datetime.combine(ist_today() + timedelta(days=1), dtime(9, 0)))
+    db.session.add_all(
+        [
+            Event(
+                user_id=user.id,
+                title="Demo day dry-run",
+                event_at=opens_at,
+                description="Final rehearsal — projector at 9.",
+            ),
+            CapsuleMessage(
+                user_id=user.id,
+                title="Read me tomorrow",
+                body="If you are reading this, the capsule worked.\n\n"
+                "Remember why you started building Saathi: small tools, "
+                "honestly shipped, beat big plans. Keep going.\n\n"
+                "— past you",
+                open_at=opens_at,
+            ),
+        ]
+    )
     db.session.commit()
 
 
