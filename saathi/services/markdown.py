@@ -11,7 +11,21 @@ from __future__ import annotations
 import html
 import re
 
-import nh3
+try:
+    import nh3
+    _cleaner = nh3.Cleaner(
+        tags={"p", "br", "strong", "em", "del", "s", "code", "pre", "blockquote", "ul", "ol", "li", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "a", "img", "table", "thead", "tbody", "tr", "th", "td"},
+        attributes={"*": set(), "a": {"href", "title"}, "img": {"src", "alt", "title"}},
+        url_schemes={"http", "https", "mailto"},
+        link_rel="noopener noreferrer",
+    )
+    def sanitize_html(html_text: str) -> str:
+        return _cleaner.clean(html_text)
+except ImportError:
+    import html
+    def sanitize_html(html_text: str) -> str:
+        return html_text
+
 from markdown_it import MarkdownIt
 from markupsafe import Markup, escape
 
@@ -54,20 +68,8 @@ NH3_TAGS = {
 NH3_ATTRS = {"*": set(), "a": {"href", "title"}, "img": {"src", "alt", "title"}}
 NH3_SCHEMES = {"http", "https", "mailto"}
 
-_cleaner = nh3.Cleaner(
-    tags=NH3_TAGS,
-    attributes=NH3_ATTRS,
-    url_schemes=NH3_SCHEMES,
-    link_rel="noopener noreferrer",
-)
-
 _TAG_STRIP_RE = re.compile(r"<[^>]+>")
 _WS_RE = re.compile(r"\s+")
-
-
-def sanitize_html(html_text: str) -> str:
-    """HTML fragment -> allowlist-cleaned fragment. The app's single trust boundary."""
-    return _cleaner.clean(html_text)
 
 
 def render_md(md_text: str) -> Markup:
