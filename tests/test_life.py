@@ -281,7 +281,7 @@ def test_month_totals_group_by_category_with_bar_widths(logged_in_client):
             },
         )
 
-    page = logged_in_client.get("/expenses").get_data(as_text=True)
+    page = logged_in_client.get("/expenses?month=2026-08").get_data(as_text=True)
 
     assert 'style="width: 75%"' in page
     assert 'style="width: 25%"' in page
