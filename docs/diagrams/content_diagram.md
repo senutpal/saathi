@@ -11,7 +11,6 @@ flowchart TB
     %% External Entities
     GUEST(["👤 Guest User<br/>(Unregistered)"]):::actor
     USER(["👤 Registered User"]):::actor
-    ADMIN(["🛡️ System Admin"]):::actor
     CRON(["⏰ cron-job.org<br/>(External Heartbeat)"]):::ext
     SMTP(["✉️ SMTP Mail Server<br/>(Gmail / Relay)"]):::ext
     DDG(["🔍 DuckDuckGo API<br/>(ddgs Search)"]):::ext
@@ -68,7 +67,6 @@ flowchart TB
 |---|---|---|
 | **Guest User** | Human Actor | Registration form data ↔ Confirmation pages |
 | **Registered User** | Human Actor (Primary) | Profile, events, notes, files, queries ↔ Pages, CVs, notifications, search results, backups |
-| **System Admin** | Human Actor | Configuration, monitoring |
 | **cron-job.org** | External System | Periodic HTTP POST tick trigger → fires due reminders |
 | **SMTP Mail Server** | External System | Outbound notification/digest emails |
 | **DuckDuckGo API** | External System | Search queries → ranked search results |
