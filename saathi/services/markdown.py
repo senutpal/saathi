@@ -13,18 +13,50 @@ import re
 
 try:
     import nh3
+
     _cleaner = nh3.Cleaner(
-        tags={"p", "br", "strong", "em", "del", "s", "code", "pre", "blockquote", "ul", "ol", "li", "h1", "h2", "h3", "h4", "h5", "h6", "hr", "a", "img", "table", "thead", "tbody", "tr", "th", "td"},
+        tags={
+            "p",
+            "br",
+            "strong",
+            "em",
+            "del",
+            "s",
+            "code",
+            "pre",
+            "blockquote",
+            "ul",
+            "ol",
+            "li",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "hr",
+            "a",
+            "img",
+            "table",
+            "thead",
+            "tbody",
+            "tr",
+            "th",
+            "td",
+        },
         attributes={"*": set(), "a": {"href", "title"}, "img": {"src", "alt", "title"}},
         url_schemes={"http", "https", "mailto"},
         link_rel="noopener noreferrer",
     )
+
     def sanitize_html(html_text: str) -> str:
         return _cleaner.clean(html_text)
 except ImportError:
     import html
+
     def sanitize_html(html_text: str) -> str:
         return html_text
+
 
 from markdown_it import MarkdownIt
 from markupsafe import Markup, escape
