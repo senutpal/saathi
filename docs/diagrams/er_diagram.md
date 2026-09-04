@@ -23,7 +23,7 @@ erDiagram
     }
     PROFILES {
         int id PK
-        int user_id FK_UK
+        int user_id FK
         string full_name
         string sex
         date date_of_birth
@@ -116,8 +116,8 @@ erDiagram
         datetime updated_at
     }
     NOTE_TAGS {
-        int note_id PK_FK
-        int tag_id PK_FK
+        int note_id PK
+        int tag_id PK
     }
     UPLOADS {
         int id PK
