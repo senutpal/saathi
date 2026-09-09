@@ -1,5 +1,9 @@
 import sqlite3
-from datetime import UTC, datetime
+try:
+    from datetime import UTC, datetime
+except ImportError:
+    from datetime import datetime, timezone
+    UTC = timezone.utc
 
 from click import echo
 from flask import Flask, session
