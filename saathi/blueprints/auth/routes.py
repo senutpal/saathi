@@ -61,7 +61,7 @@ def register() -> str | Response:
         db.session.flush()
         log_action(user.id, "signup", "Joined Saathi")
         db.session.commit()
-        flash("Account created — sign in to continue.")
+        flash("Account created — log in to continue.")
         return redirect(url_for("auth.login"))
     return render_template("auth/register.html", form=form)
 

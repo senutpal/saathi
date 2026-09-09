@@ -1,0 +1,257 @@
+// Saathi Database Diagram (DBML)
+// Paste this directly into https://dbdiagram.io
+
+Table activity_log {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  event_id INTEGER
+  activity_type VARCHAR(30) [not null]
+  title VARCHAR(120) [not null]
+  details VARCHAR(255)
+  occurred_at DATETIME [not null]
+}
+
+Table backup_codes {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  code_hash VARCHAR(64) [not null]
+  used_at DATETIME
+  created_at DATETIME [not null]
+  updated_at DATETIME [not null]
+}
+
+Table capsule_messages {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  title VARCHAR(120) [not null]
+  body TEXT [not null]
+  open_at DATETIME [not null]
+  status VARCHAR(10) [not null]
+  created_at DATETIME [not null]
+  updated_at DATETIME [not null]
+}
+
+Table contacts {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  name VARCHAR(120) [not null]
+  phone VARCHAR(30)
+  email VARCHAR(255)
+  dob DATE
+  notes TEXT
+  created_at DATETIME [not null]
+  updated_at DATETIME [not null]
+}
+
+Table education_entries {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  institution VARCHAR(150) [not null]
+  qualification VARCHAR(150) [not null]
+  field_of_study VARCHAR(150)
+  start_date DATE
+  end_date DATE
+  description TEXT
+  created_at DATETIME [not null]
+  updated_at DATETIME [not null]
+}
+
+Table events {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  title VARCHAR(200) [not null]
+  description TEXT
+  event_at DATETIME [not null]
+  repeat_rule VARCHAR(20) [not null]
+  status VARCHAR(20) [not null]
+  fired_at DATETIME
+  alert_lead_minutes INTEGER [not null]
+  created_at DATETIME [not null]
+  updated_at DATETIME [not null]
+}
+
+Table expenses {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  amount_cents INTEGER [not null]
+  currency VARCHAR(3) [not null]
+  category VARCHAR(40) [not null]
+  spent_on DATE [not null]
+  note TEXT
+  created_at DATETIME [not null]
+  updated_at DATETIME [not null]
+}
+
+Table habit_logs {
+  id INTEGER [pk]
+  habit_id INTEGER [not null]
+  log_date DATE [not null]
+}
+
+Table habits {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  name VARCHAR(80) [not null]
+  color VARCHAR(10)
+  created_at DATETIME [not null]
+  updated_at DATETIME [not null]
+}
+
+Table login_attempts {
+  id INTEGER [pk]
+  email VARCHAR(255) [not null]
+  attempted_at DATETIME [not null]
+  success BOOLEAN [not null]
+}
+
+Table logins {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  at DATETIME [not null]
+  ip VARCHAR(45)
+  user_agent VARCHAR(200)
+}
+
+Table moods {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  mood_date DATE [not null]
+  score INTEGER [not null]
+  note TEXT
+}
+
+Table note_tags {
+  note_id INTEGER [pk]
+  tag_id INTEGER [pk]
+}
+
+Table notes {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  event_id INTEGER
+  title VARCHAR(200) [not null]
+  content TEXT [not null]
+  pinned BOOLEAN [not null]
+  archived BOOLEAN [not null]
+  deleted_at DATETIME
+  created_at DATETIME [not null]
+  updated_at DATETIME [not null]
+}
+
+Table notifications {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  event_id INTEGER
+  title VARCHAR(200) [not null]
+  body TEXT [not null]
+  read_at DATETIME
+  created_at DATETIME [not null]
+  updated_at DATETIME [not null]
+}
+
+Table profiles {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  full_name VARCHAR(120) [not null]
+  sex VARCHAR(20)
+  date_of_birth DATE
+  phone VARCHAR(30)
+  address VARCHAR(255)
+  headline VARCHAR(140)
+  skills_csv TEXT
+  summary TEXT
+  likes TEXT
+  dislikes TEXT
+  public_token VARCHAR(43)
+  share_enabled BOOLEAN [not null]
+  created_at DATETIME [not null]
+  updated_at DATETIME [not null]
+}
+
+Table search_cache {
+  query_hash VARCHAR(64) [pk]
+  query_text VARCHAR(200) [not null]
+  source VARCHAR(20) [not null]
+  payload_json TEXT [not null]
+  fetched_at DATETIME [not null]
+}
+
+Table tags {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  name VARCHAR(40) [not null]
+  created_at DATETIME [not null]
+  updated_at DATETIME [not null]
+}
+
+Table uploads {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  original_filename VARCHAR(255) [not null]
+  stored_filename VARCHAR(64) [not null]
+  mime_type VARCHAR(120)
+  size_bytes INTEGER [not null]
+  is_image BOOLEAN [not null]
+  uploaded_at DATETIME [not null]
+  created_at DATETIME [not null]
+  updated_at DATETIME [not null]
+}
+
+Table users {
+  id INTEGER [pk]
+  username VARCHAR(80) [not null]
+  email VARCHAR(255) [not null]
+  password_hash VARCHAR(255) [not null]
+  deleted_at DATETIME
+  ics_token VARCHAR(64)
+  totp_secret VARCHAR(64)
+  twofa_enabled BOOLEAN [not null]
+  session_invalid_before DATETIME
+  digest_enabled BOOLEAN [not null]
+  digest_last_sent_at DATETIME
+  created_at DATETIME [not null]
+  updated_at DATETIME [not null]
+}
+
+Table weather_cache {
+  city_key VARCHAR(120) [pk]
+  payload_json TEXT [not null]
+  fetched_at DATETIME [not null]
+}
+
+Table work_entries {
+  id INTEGER [pk]
+  user_id INTEGER [not null]
+  organization VARCHAR(150) [not null]
+  role VARCHAR(150) [not null]
+  location VARCHAR(120)
+  start_date DATE
+  end_date DATE
+  description TEXT
+  created_at DATETIME [not null]
+  updated_at DATETIME [not null]
+}
+
+// Relationships
+Ref: profiles.user_id > users.id
+Ref: note_tags.tag_id > tags.id
+Ref: activity_log.event_id > events.id
+Ref: habit_logs.habit_id > habits.id
+Ref: notes.event_id > events.id
+Ref: backup_codes.user_id > users.id
+Ref: notes.user_id > users.id
+Ref: habits.user_id > users.id
+Ref: activity_log.user_id > users.id
+Ref: capsule_messages.user_id > users.id
+Ref: events.user_id > users.id
+Ref: expenses.user_id > users.id
+Ref: work_entries.user_id > users.id
+Ref: moods.user_id > users.id
+Ref: uploads.user_id > users.id
+Ref: notifications.event_id > events.id
+Ref: notifications.user_id > users.id
+Ref: logins.user_id > users.id
+Ref: education_entries.user_id > users.id
+Ref: note_tags.note_id > notes.id
+Ref: tags.user_id > users.id
+Ref: contacts.user_id > users.id

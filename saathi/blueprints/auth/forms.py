@@ -18,7 +18,7 @@ class RegisterForm(FlaskForm):
         "Confirm password",
         validators=[DataRequired(), EqualTo("password", message="Passwords must match.")],
     )
-    submit = SubmitField("Create account")
+    submit = SubmitField("Sign up")
 
     def validate_username(self, field: Field) -> None:
         taken = User.query.filter(
@@ -37,7 +37,7 @@ class LoginForm(FlaskForm):
     # No remember-me field by decision (B03 §1): a persistent token widens exposure for no gain.
     email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired()])
-    submit = SubmitField("Sign in")
+    submit = SubmitField("Log in")
 
 
 class TwoFaConfirmForm(FlaskForm):

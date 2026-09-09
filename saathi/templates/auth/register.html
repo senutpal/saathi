@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "macros.html" import field %}
-{% block title %}Create account | Saathi{% endblock %}
-{% block header %}Create account{% endblock %}
+{% block title %}Sign up | Saathi{% endblock %}
+{% block header %}Sign up{% endblock %}
 {% block content %}
 <div class="my-auto w-full max-w-sm py-8">
   <form method="post" class="w-full space-y-4 rounded-lg border border-border bg-card p-6 shadow-sm">
@@ -11,11 +11,11 @@
     {{ field(form.password, placeholder="at least 8 characters") }}
     {{ field(form.confirm) }}
     <button type="submit"
-            class="inline-flex h-9 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Create account</button>
+            class="inline-flex h-9 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">Sign up</button>
   </form>
   <p class="mt-4 text-center text-sm text-muted-foreground">
     Already have an account?
-    <a href="{{ url_for('auth.login') }}" class="font-medium underline underline-offset-4">Sign in</a>
+    <a href="{{ url_for('auth.login') }}" class="font-medium underline underline-offset-4">Log in</a>
   </p>
 </div>
 {% endblock %}

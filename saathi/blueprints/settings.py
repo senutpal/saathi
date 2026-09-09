@@ -197,5 +197,5 @@ def logout_everywhere() -> ResponseReturnValue:
     db.session.commit()
     logout_user()
     session.clear()
-    flash("Every signed-in device has been logged out. Sign in again to continue.")
+    flash("Every signed-in device has been logged out. Log in again to continue.")
     return redirect(url_for("auth.login"))

@@ -129,7 +129,7 @@
         <a href="{{ url_for('auth.login') }}"
            class="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Log in</a>
         <a href="{{ url_for('auth.register') }}"
-           class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Register</a>
+           class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Sign up</a>
         {% endif %}
       </div>
     </header>
@@ -166,7 +166,7 @@ function saathiToast(message, level = "success") {
 })();
 </script>
 {% for category, message in get_flashed_messages(with_categories=true) %}
-<script>saathiToast({{ message|tojson }}, {{ 'error' if category == 'error' else 'success'|tojson }})</script>
+<script>saathiToast({{ message|tojson }}, {{ ('error' if category == 'error' else 'success')|tojson }})</script>
 {% endfor %}
 <style media="print">
   header, footer, aside, #toasts, .no-print { display: none !important; }
