@@ -69,6 +69,21 @@ def init_extensions(app: Flask) -> None:
     limiter.init_app(app)
 
 
+def ensure_schema(app: Flask | None = None) -> None:
+    """Ensure optional columns (like profile.city) exist in existing SQLite databases."""
+    try:
+        from sqlalchemy import text
+
+        with db.engine.connect() as conn:
+            res = conn.execute(text("PRAGMA table_info(profiles)")).fetchall()
+            cols = [r[1] for r in res]
+            if cols and "city" not in cols:
+                conn.execute(text("ALTER TABLE profiles ADD COLUMN city VARCHAR(100)"))
+                conn.commit()
+    except Exception:
+        pass
+
+
 def init_db(app: Flask) -> None:
     from . import models  # noqa: F401  (must be imported before create_all)
 
@@ -78,4 +93,6 @@ def init_db(app: Flask) -> None:
     def _init_db_command() -> None:
         """Create all tables (idempotent)."""
         db.create_all()
+        ensure_schema(app)
         echo(f"database ready at {app.config['DATABASE_PATH']}")
+

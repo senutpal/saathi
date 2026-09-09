@@ -9,12 +9,14 @@ cached in SQLite; errors are never cached.
 from __future__ import annotations
 
 import hashlib
+import ipaddress
 import json
 from datetime import datetime, timedelta
 from urllib.parse import quote_plus, urlparse
 
 import requests
 from ddgs import DDGS
+from flask import has_request_context, request
 from sqlalchemy import delete as sa_delete
 
 from ..extensions import db
@@ -25,9 +27,11 @@ HTTP_TIMEOUT = (3.05, 7)
 UA = {"User-Agent": "Saathi/1.0 (student project; keyless; contact via repo)"}
 CACHE_TTL_SEARCH = timedelta(hours=6)
 CACHE_TTL_WEATHER = timedelta(minutes=30)
+CACHE_TTL_IP_GEO = timedelta(hours=24)
 PRUNE_AFTER = timedelta(days=7)
 WIKI_OPENSEARCH = "https://en.wikipedia.org/w/api.php?action=opensearch&format=json&limit=5&search="
 GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search"
+IP_GEO_URL = "http://ip-api.com/json/{ip}?fields=status,city,country"
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 WMO_CODES = {
     0: "Clear sky",
@@ -215,3 +219,61 @@ def get_weather(city: str) -> dict | None:
         return None
     _cache_put(WeatherCache, key, out)
     return out
+
+
+def is_public_ip(ip: str | None) -> bool:
+    """Return True if ip is a valid, globally routable public IP."""
+    if not ip or not isinstance(ip, str):
+        return False
+    clean = ip.strip()
+    try:
+        addr = ipaddress.ip_address(clean)
+        return not (
+            addr.is_private
+            or addr.is_loopback
+            or addr.is_reserved
+            or addr.is_link_local
+            or addr.is_multicast
+            or addr.is_unspecified
+        )
+    except ValueError:
+        return False
+
+
+def get_client_ip() -> str | None:
+    """Extract client IP from request headers (X-Forwarded-For / X-Real-IP / remote_addr)."""
+    if not has_request_context():
+        return None
+    xfwd = request.headers.get("X-Forwarded-For")
+    if xfwd:
+        first = xfwd.split(",")[0].strip()
+        if first:
+            return first
+    return request.headers.get("X-Real-IP") or request.remote_addr
+
+
+def get_city_from_ip(ip: str) -> str | None:
+    """Resolve a public IP to its city name via keyless IP geocoding; caches for 24h."""
+    if not is_public_ip(ip):
+        return None
+    clean = ip.strip()
+    cache_key = f"ip:{clean.lower()}"
+    hit = _cache_get(WeatherCache, cache_key, CACHE_TTL_IP_GEO)
+    if hit is not None:
+        payload, _ = hit
+        return payload.get("city")
+    try:
+        resp = requests.get(
+            IP_GEO_URL.format(ip=clean),
+            headers=UA,
+            timeout=(2.0, 3.5),
+        )
+        data = resp.json()
+        if data.get("status") == "success" and data.get("city"):
+            city = data["city"].strip()
+            _cache_put(WeatherCache, cache_key, {"city": city})
+            return city
+    except Exception:
+        pass
+    return None
+

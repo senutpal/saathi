@@ -7,7 +7,7 @@ from datetime import datetime
 from sqlalchemy import event
 
 from saathi.extensions import db
-from saathi.models import ActivityLog, Event, Note, Notification, User
+from saathi.models import ActivityLog, Event, Note, Notification, Profile, User
 from saathi.services import briefing
 from saathi.utils import ist_to_utc_naive
 
@@ -95,6 +95,53 @@ def test_weather_card_renders_when_service_returns_payload(logged_in_client, app
     assert "27°C" in html
     assert "Mainly clear" in html
     assert "Wind 13 km/h" in html
+
+
+def test_weather_card_prefers_user_profile_city_over_fallback(logged_in_client, app, session, monkeypatch):
+    app.config["WEATHER_CITY"] = "FallbackCity"
+    user = User.query.filter_by(email="a@example.com").one()
+    user.profile = Profile(full_name="Alice", city="Kalyani")
+    session.commit()
+
+    captured_city = []
+    monkeypatch.setattr(
+        briefing,
+        "get_weather",
+        lambda city: captured_city.append(city) or {"city": city, "temp_c": 30, "wind_kmh": 5, "desc": "Sunny"},
+    )
+
+    page = logged_in_client.get("/")
+    assert "Weather · Kalyani" in page.get_data(as_text=True)
+    assert captured_city == ["Kalyani"]
+
+
+def test_weather_card_uses_ip_detection_when_profile_city_unset(logged_in_client, app, monkeypatch):
+    app.config["WEATHER_CITY"] = "FallbackCity"
+    monkeypatch.setattr(briefing, "get_client_ip", lambda: "103.1.2.3")
+    monkeypatch.setattr(briefing, "get_city_from_ip", lambda ip: "Kolkata" if ip == "103.1.2.3" else None)
+
+    captured_city = []
+    monkeypatch.setattr(
+        briefing,
+        "get_weather",
+        lambda city: captured_city.append(city) or {"city": city, "temp_c": 29, "wind_kmh": 8, "desc": "Rain"},
+    )
+
+    page = logged_in_client.get("/")
+    assert "Weather · Kolkata" in page.get_data(as_text=True)
+    assert captured_city == ["Kolkata"]
+
+
+def test_is_public_ip_helper():
+    from saathi.services.search import is_public_ip
+
+    assert is_public_ip("8.8.8.8") is True
+    assert is_public_ip("103.21.244.0") is True
+    assert is_public_ip("127.0.0.1") is False
+    assert is_public_ip("192.168.1.1") is False
+    assert is_public_ip("10.0.0.1") is False
+    assert is_public_ip(None) is False
+    assert is_public_ip("invalid-ip") is False
 
 
 def test_on_this_day_picks_previous_years_entry(session, make_user):

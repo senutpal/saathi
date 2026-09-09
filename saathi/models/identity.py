@@ -76,6 +76,7 @@ class Profile(TimestampMixin, db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True)
     full_name: Mapped[str] = mapped_column(String(120))
+    city: Mapped[str | None] = mapped_column(String(100))
     sex: Mapped[str | None] = mapped_column(String(20))
     date_of_birth: Mapped[date | None] = mapped_column(Date)
     phone: Mapped[str | None] = mapped_column(String(30))

@@ -11,18 +11,18 @@ from collections.abc import Callable
 from datetime import date, datetime
 from typing import Any
 
-from flask import current_app
+from flask import current_app, has_request_context
 from sqlalchemy import func, select
 
 from ..extensions import db
-from ..models import ActivityLog, Event, Note, Notification
+from ..models import ActivityLog, Event, Note, Notification, Profile
 from ..models.base import utcnow
 from ..utils import utc_to_ist_wall
 from .agenda import day_events
 from .daily import habit_overview as _fetch_habit_overview
 from .daily import mood_summary as _fetch_mood_summary
 from .daily import upcoming_birthdays as _fetch_upcoming_birthdays
-from .search import get_weather
+from .search import get_city_from_ip, get_client_ip, get_weather
 
 log = logging.getLogger(__name__)
 
@@ -100,8 +100,25 @@ def _mood_card(user_id: int) -> dict:
     return {"scores": scores, "avg": avg}
 
 
-def _weather() -> dict | None:
-    city = current_app.config.get("WEATHER_CITY", "")
+def _weather(user_id: int | None = None) -> dict | None:
+    city = None
+
+    # 1. User's manually saved city (if set in Profile)
+    if user_id:
+        profile = db.session.scalar(select(Profile).where(Profile.user_id == user_id))
+        if profile and profile.city and profile.city.strip():
+            city = profile.city.strip()
+
+    # 2. Auto-detected city from Client IP (Option B)
+    if not city and has_request_context():
+        client_ip = get_client_ip()
+        if client_ip:
+            city = get_city_from_ip(client_ip)
+
+    # 3. Server fallback WEATHER_CITY from config/env (e.g. Kalyani)
+    if not city:
+        city = current_app.config.get("WEATHER_CITY", "")
+
     if not city:
         return None
     return get_weather(city)
@@ -144,7 +161,7 @@ def build_briefing(user_id: int, *, now_fn: Callable[[], datetime] = utcnow) -> 
         "habit_rows": _safe("habit_rows", lambda: _habit_rows(user_id, today), []),
         "mood_card": _safe("mood_card", lambda: _mood_card(user_id), {"scores": [], "avg": None}),
         "recent_notes": _safe("recent_notes", lambda: _recent_notes(user_id), []),
-        "weather": _safe("weather", _weather, None),
+        "weather": _safe("weather", lambda: _weather(user_id), None),
         "on_this_day": _safe("on_this_day", lambda: _on_this_day(user_id, now), None),
         "has_habits": "habits" in db.metadata.tables,
         "has_moods": "moods" in db.metadata.tables,

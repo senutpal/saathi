@@ -44,6 +44,7 @@ class ProfileForm(FlaskForm):
         validators=[Optional(), _not_future],
     )
     phone = StringField("Phone", validators=[Length(max=30)])
+    city = StringField("City", validators=[Optional(), Length(max=100)])
     address = TextAreaField("Address", validators=[Length(max=255)])
     skills_csv = TextAreaField("Skills (comma-separated)", validators=[Length(max=500)])
     summary = TextAreaField("Summary", validators=[Length(max=2000)])

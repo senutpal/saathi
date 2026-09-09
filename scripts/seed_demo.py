@@ -94,6 +94,7 @@ def run_seed(app: Flask, *, force: bool = False) -> str:
         demo.set_password("demo1234")
         demo.profile = Profile(
             full_name="Demo Saathi",
+            city="Kalyani",
             headline="Final-year CSE student",
             skills_csv="Python, Flask, SQL, Tailwind",
             summary="Building Saathi as my software-engineering semester project.",
