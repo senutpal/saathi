@@ -102,6 +102,42 @@ flowchart LR
     classDef s fill:#eef,stroke:#339;
 ```
 
+### Level 2 Decomposed DFD (Process 3.0: Smart Reminder Engine)
+
+```mermaid
+flowchart LR
+    USER([User]):::ent
+    CRON([cron-job.org]):::ent
+    EMAIL([SMTP Relay]):::ent
+    CAL([External Calendar]):::ent
+
+    P31(("3.1 Parse & Validate")):::p
+    P32(("3.2 Recurrence & Store")):::p
+    P33(("3.3 Ticker & Scanner")):::p
+    P34(("3.4 Dispatch & Feed")):::p
+
+    D3[("D3 Events & Capsules")]:::s
+    D7[("D7 Notifications")]:::s
+
+    USER -- "event form / quick-add" --> P31
+    P31 -- "validated event" --> P32
+    P32 <--> D3
+    P32 -- "confirmation & view" --> USER
+
+    CRON -- "tick trigger (/tick)" --> P33
+    P33 <--> D3
+    P33 -- "due payload" --> P34
+
+    P34 --> D7
+    P34 -- "email alert" --> EMAIL
+    P34 -- "bell badge" --> USER
+    P34 -- "live ICS feed" --> CAL
+
+    classDef ent fill:#dfd,stroke:#282;
+    classDef p fill:#fee,stroke:#933;
+    classDef s fill:#eef,stroke:#339;
+```
+
 ## 4. Component Diagram
 
 ```mermaid
